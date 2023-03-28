@@ -1,13 +1,19 @@
 # 🐬 Flipper Zero - Pokemon Trading in Game Boy
 
 <p align="center">
-<a target="_blank" href="https://youtube.com/shorts/44rBn0jeGRk&feature=github.com">
+<a target="_blank" href="https://www.reddit.com/r/flipperzero/comments/121ncot/flipper_zero_game_boy_pokemon_trading/">
   <img align="center" alt="Flipper Zero - Pokemon Trading Game Boy" src="./docs/images/youtube.png" />
   </a>
   <br />
 </p>
 
-[![FlipC.org](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/badge?branch=main)](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading?branch=main)
+<div align="center">
+
+**FW Official** | **FW Unleashed** | **FW RogueMaster**
+:- | :- | :- 
+[![FlipC.org](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/badge?branch=main)](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading?branch=main)|[![FlipC.org](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/badge?branch=main&firmware=unleashed)](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading?branch=main&firmware=unleashed)|[![FlipC.org](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/badge?branch=main&firmware=roguemaster)](https://flipc.org/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading?branch=main&firmware=roguemaster)
+</div>
+
 ## Introduction
 
 This is a Pokemon exchange application from Flipper Zero to Game Boy [(Generación I)](https://bulbapedia.bulbagarden.net/wiki/Generation_I). Flipper Zero emulates a "Slave" Game Boy connected to a Game Link Cable to be able to exchange any Pokemon from the First Generation (Red, Blue, Yellow) to a real Game Boy.
@@ -148,7 +154,7 @@ _An example GB SPI transfer. Here, the master sends 0xD9 (217) and the slave sen
 
 You can learn more about it in the following video. [**Analyzing the Different Versions of the Link Cable**](https://youtu.be/h1KKkCfzOws?t=151).
 
-## Board for Flipper Zero.
+## Board for Flipper Zero with PortData EXT Link.
 
 For the Flipper Zero board, a [PortData EXT Link](https://es.aliexpress.com/item/1005004116983895.html) and a 2x8  [prototype board](https://es.aliexpress.com/item/32478242317.html) were used.
 
@@ -167,6 +173,8 @@ _PortData EXT Link for Game Boy Color, Game Boy Pocket, GBC, GBP, GBL._
 <br />
 <img src="./docs/images/flipper-zero-pcb.png" width="400" /><br />
 </p>
+I used 33kΩ resistor on CLK, but it's optional, it can be connected directly.
+
 
 ## Connection: Flipper Zero GPIO - Game Boy
 
@@ -192,12 +200,33 @@ The pins should be connected as follows:
 | 3 (SI)                   | 6 (B2)            |
 | 2 (SO)                   | 5 (B3)            |
 
+## Connect to Flipper Zero without Socket PortData EXT Link
+
+It's possible to cut a cable directly without using a socket, but it's important to note that the cable is a crossover cable SI-SO.
+
+<p align='center'>
+<br />
+<img src="./docs/images/cut-cable.png" width="400" /><br />
+</p>
+
+*"Cable Game Link" cut and directly connected to the Flipper Zero pins.*
+
+**NOTE**: Don't rely on the cable colors as they may vary depending on the manufacturer. Use a multimeter to measure continuity and identify which cable corresponds to each pin.
+
+
+
 ## GUI
 
 To generate the graphical interface, the [**FUI-Editor**](https://ilin.pt/stuff/fui-editor/) tool was used. Additionally, the original sprites from the game Pokemon Yellow, which are found in the [**Disassembly of Pokemon Yellow**](https://github.com/pret/pokeyellow/tree/master/gfx/pokemon/front) repository, were used.
 
 For each image, the color `#aaa` was transformed to `#fff` so that Flipper Zero would render it correctly. To do this, a batch process was used in [Photopea](https://www.photopea.com/), the online image editor.
 
+##  Tested In
+- Game Boy Color (GBC)
+- Game Boy Advance (GBA)
+
+## Implemented by
+<a href="https://github.com/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/issues?q=is%3Aissue+label%3AImplemented+is%3Aclosed+is%3Aopen+" target="_blank"><img src="./docs/images/implemented.svg" /></a>
 
 ## TODO
 - [ ] Refactor the code
