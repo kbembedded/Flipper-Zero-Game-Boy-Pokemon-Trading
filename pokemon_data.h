@@ -89,16 +89,16 @@
 #define D_ARR_		0xee
 #define MALE_		0xef
 #define FEMALE_		0xf5
-#define 0_		0xf6
-#define 1_		0xf7
-#define 2_		0xf8
-#define 3_		0xf9
-#define 4_		0xfa
-#define 5_		0xfb
-#define 6_		0xfc
-#define 7_		0xfd
-#define 8_		0xfe
-#define 0_		0xff
+#define _0_		0xf6
+#define _1_		0xf7
+#define _2_		0xf8
+#define _3_		0xf9
+#define _4_		0xfa
+#define _5_		0xfb
+#define _6_		0xfc
+#define _7_		0xfd
+#define _8_		0xfe
+#define _9_		0xff
 
 
 /* XXX: These are all opposite endianness on the flipper than they are in the
