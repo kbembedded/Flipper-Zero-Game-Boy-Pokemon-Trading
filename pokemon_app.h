@@ -19,6 +19,14 @@ struct pokemon_lut {
 	const char *name;
 	const Icon *icon;
 	const uint8_t hex;
+	const uint8_t base_hp;
+	const uint8_t base_atk;
+	const uint8_t base_def;
+	const uint8_t base_spd;
+	const uint8_t base_special;
+	const uint8_t base_exp_yield; // XXX: I don't think this is needed, need to test
+	const uint8_t attacks[4];
+	const uint8_t growth;
 };
 
 typedef struct App App;
