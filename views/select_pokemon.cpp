@@ -35,78 +35,107 @@ static bool select_pokemon_input_callback(InputEvent* event, void* context) {
     SelectPokemon* select_pokemon = (SelectPokemon*)context;
     bool consumed = false;
 
-    if(event->type == InputTypePress && event->key == InputKeyOk) {
-        with_view_model_cpp(
-            select_pokemon->view,
-            SelectPokemonModel*,
-            model,
-            {
-                select_pokemon->app->current_pokemon = model->current_pokemon;
-                select_pokemon->app->pokemon_hex_code = pokemon_table[model->current_pokemon].hex;
-            },
-            false);
-        view_dispatcher_switch_to_view(select_pokemon->app->view_dispatcher, AppViewTrade);
-        consumed = true;
-    } else if(event->type == InputTypePress && event->key == InputKeyBack) {
-        view_dispatcher_switch_to_view(select_pokemon->app->view_dispatcher, VIEW_NONE);
-        consumed = true;
-    } else if(event->type == InputTypePress && event->key == InputKeyLeft) {
-        with_view_model_cpp(
-            select_pokemon->view,
-            SelectPokemonModel*,
-            model,
-            {
-                if(model->current_pokemon == 0) {
-                    model->current_pokemon = 150;
-                } else {
-                    model->current_pokemon--;
-                }
-            },
-            true);
-        consumed = true;
-    } else if(event->type == InputTypePress && event->key == InputKeyDown) {
-        with_view_model_cpp(
-            select_pokemon->view,
-            SelectPokemonModel*,
-            model,
-            {
-                if(model->current_pokemon >= 10) {
-                    model->current_pokemon -= 10;
-                } else {
-                    model->current_pokemon = 150;
-                }
-            },
-            true);
-        consumed = true;
-    } else if(event->type == InputTypePress && event->key == InputKeyRight) {
-        with_view_model_cpp(
-            select_pokemon->view,
-            SelectPokemonModel*,
-            model,
-            {
-                if(model->current_pokemon == 150) {
-                    model->current_pokemon = 0;
-                } else {
-                    model->current_pokemon++;
-                }
-            },
-            true);
-        consumed = true;
-    } else if(event->type == InputTypePress && event->key == InputKeyUp) {
-        with_view_model_cpp(
-            select_pokemon->view,
-            SelectPokemonModel*,
-            model,
-            {
-                if(model->current_pokemon <= 140) {
-                    model->current_pokemon += 10;
-                } else {
-                    model->current_pokemon = 0;
-                    ;
-                }
-            },
-            true);
-        consumed = true;
+    /* We only handle InputTypePress at the moment */
+    if (event->type != InputTypePress)
+        return consumed;
+
+    switch (event->key) {
+        /* Advance to next view with the selected pokemon */
+        case InputKeyOk:
+            with_view_model_cpp(
+                select_pokemon->view,
+                SelectPokemonModel*,
+                model,
+                {
+                    select_pokemon->app->current_pokemon = model->current_pokemon;
+                    select_pokemon->app->pokemon_hex_code = pokemon_table[model->current_pokemon].hex;
+                },
+                false);
+            view_dispatcher_switch_to_view(select_pokemon->app->view_dispatcher, AppViewTrade);
+            consumed = true;
+            break;
+
+        /* Return to the previous view */
+        case InputKeyBack:
+            view_dispatcher_switch_to_view(select_pokemon->app->view_dispatcher, VIEW_NONE);
+            consumed = true;
+            break;
+
+        /* Move back one through the pokedex listing */
+        case InputKeyLeft:
+            with_view_model_cpp(
+                select_pokemon->view,
+                SelectPokemonModel*,
+                model,
+                {
+                    if(model->current_pokemon == 0) {
+                        model->current_pokemon = 150;
+                    } else {
+                        model->current_pokemon--;
+                    }
+                },
+                true);
+            consumed = true;
+            break;
+
+        /* Move back ten through the pokemon listing, wrap to max pokemon on
+         * underflow.
+         */
+        case InputKeyDown:
+            with_view_model_cpp(
+                select_pokemon->view,
+                SelectPokemonModel*,
+                model,
+                {
+                    if(model->current_pokemon >= 10) {
+                        model->current_pokemon -= 10;
+                    } else {
+                        model->current_pokemon = 150;
+                    }
+                },
+                true);
+            consumed = true;
+            break;
+
+        /* Move forward one through the pokedex listing */
+        case InputKeyRight:
+            with_view_model_cpp(
+                select_pokemon->view,
+                SelectPokemonModel*,
+                model,
+                {
+                    if(model->current_pokemon == 150) {
+                        model->current_pokemon = 0;
+                    } else {
+                        model->current_pokemon++;
+                    }
+                },
+                true);
+            consumed = true;
+            break;
+
+        /* Move forward ten through the pokemon listing, wrap to min pokemon on
+         * overflow.
+         */
+        case InputKeyUp:
+            with_view_model_cpp(
+                select_pokemon->view,
+                SelectPokemonModel*,
+                model,
+                {
+                    if(model->current_pokemon <= 140) {
+                        model->current_pokemon += 10;
+                    } else {
+                        model->current_pokemon = 0;
+                    }
+                },
+                true);
+            consumed = true;
+            break;
+
+        default:
+            // Do Nothing
+            break;
     }
 
     return consumed;
