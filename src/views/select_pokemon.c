@@ -1,7 +1,7 @@
 #include <gui/elements.h>
 #include <pokemon_icons.h>
 
-#include <src/scenes/pokemon_menu.h>
+#include <src/scenes/include/pokemon_menu.h>
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 

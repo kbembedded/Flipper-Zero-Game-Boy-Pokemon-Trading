@@ -1,23 +1,23 @@
-#include "pokemon_scene.h"
+#include "include/pokemon_scene.h"
 
 // Generate scene on_enter handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_enter,
 void (*const pokemon_on_enter_handlers[])(void*) = {
-#include "pokemon_scene_config.h"
+#include "include/pokemon_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_event handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_event,
 bool (*const pokemon_on_event_handlers[])(void* context, SceneManagerEvent event) = {
-#include "pokemon_scene_config.h"
+#include "include/pokemon_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_exit handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_exit,
 void (*const pokemon_on_exit_handlers[])(void* context) = {
-#include "pokemon_scene_config.h"
+#include "include/pokemon_scene_config.h"
 };
 #undef ADD_SCENE
 

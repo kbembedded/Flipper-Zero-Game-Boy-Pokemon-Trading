@@ -3,7 +3,7 @@
 
 #include <src/include/pokemon_app.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 /* This is a bit of a hack to save some space and not have to refactor this scene.
  * We re-use the name and pin from the global gpio pin definition, but need to

@@ -7,13 +7,13 @@
 #include <src/views/trade.h>
 #include <src/views/select_pokemon.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
-#include <src/scenes/pokemon_menu.h>
-#include <src/scenes/pokemon_shiny.h>
-#include <src/scenes/pokemon_gender.h>
-#include <src/scenes/pokemon_pokerus.h>
-#include <src/scenes/unown_form.h>
+#include <src/scenes/include/pokemon_menu.h>
+#include <src/scenes/include/pokemon_shiny.h>
+#include <src/scenes/include/pokemon_gender.h>
+#include <src/scenes/include/pokemon_pokerus.h>
+#include <src/scenes/include/unown_form.h>
 
 static void scene_change_from_main_cb(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;

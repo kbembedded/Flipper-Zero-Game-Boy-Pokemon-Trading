@@ -2,7 +2,7 @@
 
 #include <src/include/pokemon_app.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 /* This just assumes gen ii for now */
 /* For a Gen II pokemon to be shiny, the following must be met:

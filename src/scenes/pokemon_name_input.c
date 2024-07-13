@@ -7,9 +7,9 @@
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 #include <src/include/pokemon_char_encode.h>
-#include <src/scenes/unown_form.h>
+#include <src/scenes/include/unown_form.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 static char name_buf[LEN_NAME_BUF];
 

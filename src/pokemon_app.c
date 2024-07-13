@@ -3,12 +3,12 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+#include <src/scenes/include/pokemon_menu.h>
 #include <src/views/trade.h>
 #include <src/views/select_pokemon.h>
 #include <src/include/pokemon_char_encode.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 PokemonFap* pokemon_alloc() {
     PokemonFap* pokemon_fap = (PokemonFap*)malloc(sizeof(PokemonFap));

@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <src/include/pokemon_data.h>
 
-#include <src/scenes/unown_form.h>
+#include <src/scenes/include/unown_form.h>
 
 /* This is used to get the current IVs from the trade struct.
  * Unown form is calculated by taking the middle bytes of each nibble of IV,

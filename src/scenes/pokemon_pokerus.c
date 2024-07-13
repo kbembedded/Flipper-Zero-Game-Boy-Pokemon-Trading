@@ -3,7 +3,7 @@
 
 #include <src/include/pokemon_app.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 static const char* pokerus_states[] = {
     "Clean",

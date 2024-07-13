@@ -1,6 +1,6 @@
 #include <src/include/pokemon_app.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 void pokemon_scene_trade_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;

@@ -2,7 +2,7 @@
 #include <src/include/pokemon_data.h>
 #include <src/include/pokemon_char_encode.h>
 
-#include <src/scenes/pokemon_scene.h>
+#include <src/scenes/include/pokemon_scene.h>
 
 static void scene_change_from_main_cb(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
