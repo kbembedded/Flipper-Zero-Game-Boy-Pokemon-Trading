@@ -4,6 +4,7 @@
 #include <furi.h>
 
 #include <pokemon_icons.h>
+#include <src/include/pokemon_gender.h>
 #include <src/include/pokemon_table.h>
 #include <src/include/stats.h>
 
@@ -26,7 +27,7 @@ struct __attribute__((__packed__)) pokemon_data_table {
     const uint8_t type[2];
     const uint8_t move[4];
     const Growth growth;
-    const Gender gender_ratio;
+    const GenderRatio gender_ratio;
 };
 
 int table_pokemon_pos_get(const PokemonTable* table, uint8_t index) {

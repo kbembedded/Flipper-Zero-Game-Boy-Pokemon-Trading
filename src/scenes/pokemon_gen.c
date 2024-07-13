@@ -11,7 +11,7 @@
 
 #include <src/scenes/include/pokemon_menu.h>
 #include <src/scenes/include/pokemon_shiny.h>
-#include <src/scenes/include/pokemon_gender.h>
+#include <src/include/pokemon_gender.h>
 #include <src/scenes/include/pokemon_pokerus.h>
 #include <src/include/unown_form.h>
 
@@ -30,7 +30,7 @@ static void scene_change_from_main_cb(void* context, uint32_t index) {
         scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneLevel, index);
         break;
     case PokemonSceneGender:
-        if(select_gender_is_static(
+        if(pokemon_gender_is_static(
                pokemon_fap->pdata,
                table_stat_base_get(
                    pokemon_fap->pdata->pokemon_table,
@@ -184,7 +184,7 @@ void pokemon_scene_gen_on_enter(void* context) {
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonSceneShiny, scene_change_from_main_cb, pokemon_fap);
 
-        snprintf(buf, sizeof(buf), "Gender:         %s", select_gender_get(pokemon_fap->pdata));
+        snprintf(buf, sizeof(buf), "Gender:         %s", pokemon_gender_get(pokemon_fap->pdata));
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonSceneGender, scene_change_from_main_cb, pokemon_fap);
 

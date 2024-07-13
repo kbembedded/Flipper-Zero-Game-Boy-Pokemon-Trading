@@ -3,6 +3,23 @@
 
 #pragma once
 
+#include <src/include/pokemon_data.h>
+
+typedef enum {
+    GENDER_MALE,
+    GENDER_FEMALE,
+} Gender;
+
+typedef enum {
+    GENDER_F0 = 0x00,
+    GENDER_F12_5 = 0x1F,
+    GENDER_F25 = 0x3F,
+    GENDER_F50 = 0x7F,
+    GENDER_F75 = 0xBF,
+    GENDER_F100 = 0xFE,
+    GENDER_UNKNOWN = 0xFF,
+} GenderRatio;
+
 /* The gender ratio is a bit value, and if the ATK_IV is less than or equal to
  * the gender ratio, the gender is female.
  *
@@ -12,9 +29,11 @@
  *   male only pokemon need to be specifically checked for.
  */
 
-const char* select_gender_is_static(PokemonData* pdata, uint8_t ratio);
+const char* pokemon_gender_is_static(PokemonData* pdata, uint8_t ratio);
 
 /* This will return a pointer to a string of the pokemon's current gender */
-char* select_gender_get(PokemonData* pdata);
+const char* pokemon_gender_get(PokemonData* pdata);
+
+void pokemon_gender_set(PokemonData* pdata, Gender gender);
 
 #endif // POKEMON_GENDER_H
