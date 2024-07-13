@@ -13,7 +13,7 @@
 #include <src/scenes/include/pokemon_shiny.h>
 #include <src/scenes/include/pokemon_gender.h>
 #include <src/scenes/include/pokemon_pokerus.h>
-#include <src/scenes/include/unown_form.h>
+#include <src/include/unown_form.h>
 
 static void scene_change_from_main_cb(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
