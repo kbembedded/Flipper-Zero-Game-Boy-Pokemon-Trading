@@ -8,6 +8,8 @@
 #include <src/views/select_pokemon.h>
 #include <src/include/pokemon_char_encode.h>
 
+#include <src/scenes/pokemon_scene.h>
+
 PokemonFap* pokemon_alloc() {
     PokemonFap* pokemon_fap = (PokemonFap*)malloc(sizeof(PokemonFap));
 
@@ -40,10 +42,10 @@ PokemonFap* pokemon_alloc() {
     pokemon_fap->dialog_ex = dialog_ex_alloc();
 
     // Set up menu scene
-    pokemon_fap->scene_manager = scene_manager_alloc(&pokemon_scene_manager_handlers, pokemon_fap);
+    pokemon_fap->scene_manager = scene_manager_alloc(&pokemon_scene_handlers, pokemon_fap);
     view_dispatcher_add_view(
         pokemon_fap->view_dispatcher, AppViewMainMenu, submenu_get_view(pokemon_fap->submenu));
-    scene_manager_next_scene(pokemon_fap->scene_manager, MainMenuScene);
+    scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneMainMenu);
 
     return pokemon_fap;
 }

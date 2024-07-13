@@ -2,7 +2,8 @@
 #include <furi.h>
 
 #include <src/include/pokemon_app.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static const char* pokerus_states[] = {
     "Clean",
@@ -159,7 +160,7 @@ static void select_pokerus_rebuild_list(PokemonFap* pokemon_fap) {
     furi_string_free(daystring);
 }
 
-void select_pokerus_scene_on_enter(void* context) {
+void pokemon_scene_select_pokerus_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     select_pokerus_rebuild_list(pokemon_fap);
@@ -169,4 +170,17 @@ void select_pokerus_scene_on_enter(void* context) {
         AppViewOpts,
         variable_item_list_get_view(pokemon_fap->variable_item_list));
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+}
+
+bool pokemon_scene_select_pokerus_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_pokerus_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }

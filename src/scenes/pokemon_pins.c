@@ -2,7 +2,8 @@
 #include <furi.h>
 
 #include <src/include/pokemon_app.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 /* This is a bit of a hack to save some space and not have to refactor this scene.
  * We re-use the name and pin from the global gpio pin definition, but need to
@@ -143,7 +144,7 @@ static void select_pins_rebuild_list(PokemonFap* pokemon_fap) {
     variable_item_set_current_value_text(builder.clk, named_pins[builder.clk_index]->name);
 }
 
-void select_pins_scene_on_enter(void* context) {
+void pokemon_scene_select_pins_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     select_pins_rebuild_list(pokemon_fap);
@@ -153,4 +154,17 @@ void select_pins_scene_on_enter(void* context) {
         AppViewOpts,
         variable_item_list_get_view(pokemon_fap->variable_item_list));
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+}
+
+bool pokemon_scene_select_pins_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_pins_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }

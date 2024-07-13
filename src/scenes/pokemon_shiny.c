@@ -2,7 +2,7 @@
 
 #include <src/include/pokemon_app.h>
 
-#include <src/scenes/pokemon_menu.h>
+#include <src/scenes/pokemon_scene.h>
 
 /* This just assumes gen ii for now */
 /* For a Gen II pokemon to be shiny, the following must be met:
@@ -67,7 +67,7 @@ static void select_shiny_selected_callback(void* context, uint32_t index) {
     scene_manager_previous_scene(pokemon_fap->scene_manager);
 }
 
-void select_shiny_scene_on_enter(void* context) {
+void pokemon_scene_select_shiny_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     submenu_reset(pokemon_fap->submenu);
@@ -77,4 +77,14 @@ void select_shiny_scene_on_enter(void* context) {
 
     submenu_add_item(
         pokemon_fap->submenu, "Not Shiny", 0, select_shiny_selected_callback, pokemon_fap);
+}
+
+bool pokemon_scene_select_shiny_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_shiny_on_exit(void* context) {
+    UNUSED(context);
 }

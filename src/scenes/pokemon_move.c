@@ -6,11 +6,12 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static void select_move_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    uint32_t move = scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectMoveScene);
+    uint32_t move = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove);
     uint8_t num = pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE);
 
     if(index == UINT32_MAX) {
@@ -30,15 +31,15 @@ static void select_move_selected_callback(void* context, uint32_t index) {
         (int)move);
 
     /* Move back to move menu */
-    scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, SelectMoveScene);
+    scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, PokemonSceneMove);
 }
 
 static void select_move_index_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     /* Move to next scene */
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, SelectMoveIndexScene, index);
-    scene_manager_next_scene(pokemon_fap->scene_manager, SelectMoveSetScene);
+    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex, index);
+    scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneMoveSet);
 }
 
 static void select_move_number_callback(void* context, uint32_t index) {
@@ -47,11 +48,11 @@ static void select_move_number_callback(void* context, uint32_t index) {
     /* Move to move index scene, save which move number we're selecting,
      * This doubles as the move slot we're going to write to later.
      */
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, SelectMoveScene, index);
-    scene_manager_next_scene(pokemon_fap->scene_manager, SelectMoveIndexScene);
+    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMove, index);
+    scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneMoveIndex);
 }
 
-void select_move_scene_on_enter(void* context) {
+void pokemon_scene_select_move_on_enter(void* context) {
     furi_assert(context);
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     char buf[64];
@@ -75,19 +76,29 @@ void select_move_scene_on_enter(void* context) {
 
     submenu_set_selected_item(
         pokemon_fap->submenu,
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectMoveScene));
+        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove));
 
     /* Clear cursor position on MoveIndex */
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, SelectMoveIndexScene, 0);
+    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex, 0);
 }
 
-void select_move_index_scene_on_enter(void* context) {
+bool pokemon_scene_select_move_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_move_on_exit(void* context) {
+    UNUSED(context);
+}
+
+void pokemon_scene_select_move_index_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     int i;
     char letter[2] = {'\0'};
     char buf[32];
     const char* name;
-    uint32_t move_num = scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectMoveScene);
+    uint32_t move_num = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove);
 
     submenu_reset(pokemon_fap->submenu);
     /* The move list should always start with No Move, put that at the start
@@ -132,15 +143,25 @@ void select_move_index_scene_on_enter(void* context) {
 
     submenu_set_selected_item(
         pokemon_fap->submenu,
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectMoveIndexScene));
+        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex));
 }
 
-void select_move_set_scene_on_enter(void* context) {
+bool pokemon_scene_select_move_index_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_move_index_on_exit(void* context) {
+    UNUSED(context);
+}
+
+void pokemon_scene_select_move_set_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     int i;
     const char* name;
     char letter =
-        (char)scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectMoveIndexScene);
+        (char)scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex);
 
     /* Populate submenu with all moves that start with `letter` */
     /* NOTE! Start with index of 1 in the move list since 0 should always be no move! */
@@ -158,4 +179,21 @@ void select_move_set_scene_on_enter(void* context) {
                 pokemon_fap);
         };
     }
+}
+
+bool pokemon_scene_select_move_set_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_move_set_on_exit(void* context) {
+    UNUSED(context);
+}
+
+void generic_scene_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }

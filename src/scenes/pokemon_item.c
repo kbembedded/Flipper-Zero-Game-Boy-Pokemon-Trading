@@ -6,11 +6,12 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static void select_item_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    uint32_t item = scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectItemSetScene);
+    uint32_t item = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet);
 
     pokemon_stat_set(pokemon_fap->pdata, STAT_HELD_ITEM, item, index);
 
@@ -22,18 +23,18 @@ static void select_item_selected_callback(void* context, uint32_t index) {
             pokemon_stat_get(pokemon_fap->pdata, STAT_HELD_ITEM, item)));
 
     /* Move back to Gen menu. This assumes this submenu is only ever used in Gen II */
-    scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, GenIITradeScene);
+    scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, PokemonSceneGenIITrade);
 }
 
 static void select_item_index_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     /* Move to next scene */
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, SelectItemSetScene, index);
-    scene_manager_next_scene(pokemon_fap->scene_manager, SelectItemSetScene);
+    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet, index);
+    scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneItemSet);
 }
 
-void select_item_scene_on_enter(void* context) {
+void pokemon_scene_select_item_on_enter(void* context) {
     furi_assert(context);
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     int i;
@@ -64,16 +65,26 @@ void select_item_scene_on_enter(void* context) {
 
     submenu_set_selected_item(
         pokemon_fap->submenu,
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectItemSetScene));
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, SelectItemSetScene, 0);
+        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet));
+    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet, 0);
 }
 
-void select_item_set_scene_on_enter(void* context) {
+bool pokemon_scene_select_item_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_item_on_exit(void* context) {
+    UNUSED(context);
+}
+
+void pokemon_scene_select_item_set_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     int i;
     const char* name;
     char letter =
-        (char)scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectItemSetScene);
+        (char)scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet);
 
     /* Populate submenu with all items that start with `letter` */
     /* NOTE! Start with pos of 1 in the item list since 0 should always be no item! */
@@ -91,4 +102,16 @@ void select_item_set_scene_on_enter(void* context) {
                 pokemon_fap);
         }
     }
+}
+
+bool pokemon_scene_select_item_set_on_event(void* context, SceneManagerEvent event)
+{
+	UNUSED(event);
+	UNUSED(context);
+
+	return false;
+}
+
+void pokemon_scene_select_item_set_on_exit(void* context) {
+    UNUSED(context);
 }

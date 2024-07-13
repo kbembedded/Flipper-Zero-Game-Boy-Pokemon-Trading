@@ -4,7 +4,8 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 struct type_cb {
     DataStatSub type;
@@ -39,7 +40,7 @@ static void select_type_callback(VariableItem* item) {
         namedlist_index_get(context->pokemon_fap->pdata->type_list, pos));
 }
 
-void select_type_scene_on_enter(void* context) {
+void pokemon_scene_select_type_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     VariableItem* vitype[2];
     char* strings[2] = {"Type 1:", "Type 2:"};
@@ -73,4 +74,17 @@ void select_type_scene_on_enter(void* context) {
         AppViewOpts,
         variable_item_list_get_view(pokemon_fap->variable_item_list));
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+}
+
+bool pokemon_scene_select_type_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_type_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }

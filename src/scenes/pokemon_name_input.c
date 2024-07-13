@@ -7,8 +7,9 @@
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 #include <src/include/pokemon_char_encode.h>
-#include <src/scenes/pokemon_menu.h>
 #include <src/scenes/unown_form.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static char name_buf[LEN_NAME_BUF];
 
@@ -24,11 +25,11 @@ static char name_buf[LEN_NAME_BUF];
 static bool select_name_input_validator(const char* text, FuriString* error, void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     uint32_t state =
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectNicknameScene);
+        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneNickname);
     unsigned int i;
 
     /* A blank field for the pokemon nickname means revert to default name */
-    if(text[0] == '\0' && state == SelectNicknameScene) {
+    if(text[0] == '\0' && state == PokemonSceneNickname) {
         /* Get the pokemon's name and populate our buffer with it */
         /* TODO: Nidoran M/F are still a problem with this. */
         pokemon_default_nickname_set(name_buf, pokemon_fap->pdata, sizeof(name_buf));
@@ -44,7 +45,7 @@ static bool select_name_input_validator(const char* text, FuriString* error, voi
     }
 
     /* Check for Unown setting is a character */
-    if(state == SelectUnownFormScene) {
+    if(state == PokemonSceneUnownForm) {
         if(!isalpha((int)text[0])) {
             furi_string_printf(error, "Form must\nbe a single\nletter!");
             return false;
@@ -52,13 +53,13 @@ static bool select_name_input_validator(const char* text, FuriString* error, voi
     }
 
     switch(state) {
-    case SelectNicknameScene:
+    case PokemonSceneNickname:
         pokemon_name_set(pokemon_fap->pdata, STAT_NICKNAME, (char*)text);
         break;
-    case SelectOTNameScene:
+    case PokemonSceneOTName:
         pokemon_name_set(pokemon_fap->pdata, STAT_OT_NAME, (char*)text);
         break;
-    case SelectUnownFormScene:
+    case PokemonSceneUnownForm:
         unown_form_set(pokemon_fap->pdata, text[0]);
         break;
     default:
@@ -75,26 +76,26 @@ static void select_name_input_callback(void* context) {
     scene_manager_previous_scene(pokemon_fap->scene_manager);
 }
 
-void select_name_scene_on_enter(void* context) {
+void pokemon_scene_select_name_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     uint32_t state =
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectNicknameScene);
+        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneNickname);
     char* header;
     int len;
     DataStat stat;
 
     switch(state) {
-    case SelectNicknameScene:
+    case PokemonSceneNickname:
         header = "Nickname (none for default)";
         len = LEN_NICKNAME;
         stat = STAT_NICKNAME;
         break;
-    case SelectOTNameScene:
+    case PokemonSceneOTName:
         header = "Enter OT Name";
         len = LEN_OT_NAME;
         stat = STAT_OT_NAME;
         break;
-    case SelectUnownFormScene:
+    case PokemonSceneUnownForm:
         header = "Enter Unown Letter Form";
         len = 2;
         stat = STAT_OT_NAME;
@@ -104,7 +105,7 @@ void select_name_scene_on_enter(void* context) {
         break;
     }
 
-    if(state == SelectUnownFormScene) {
+    if(state == PokemonSceneUnownForm) {
         /* Put the current letter in the buffer */
         name_buf[0] = unown_form_get(pokemon_fap->pdata);
         name_buf[1] = '\0';
@@ -121,4 +122,17 @@ void select_name_scene_on_enter(void* context) {
     view_dispatcher_add_view(
         pokemon_fap->view_dispatcher, AppViewOpts, text_input_get_view(pokemon_fap->text_input));
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+}
+
+bool pokemon_scene_select_name_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_name_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }

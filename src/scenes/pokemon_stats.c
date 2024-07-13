@@ -4,7 +4,8 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static void select_stats_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
@@ -14,7 +15,7 @@ static void select_stats_selected_callback(void* context, uint32_t index) {
     scene_manager_previous_scene(pokemon_fap->scene_manager);
 }
 
-void select_stats_scene_on_enter(void* context) {
+void pokemon_scene_select_stats_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     int i;
 
@@ -28,4 +29,14 @@ void select_stats_scene_on_enter(void* context) {
             select_stats_selected_callback,
             pokemon_fap);
     }
+}
+
+bool pokemon_scene_select_stats_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_stats_on_exit(void* context) {
+    UNUSED(context);
 }

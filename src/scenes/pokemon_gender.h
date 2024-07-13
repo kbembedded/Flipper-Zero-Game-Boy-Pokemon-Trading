@@ -17,6 +17,4 @@ const char* select_gender_is_static(PokemonData* pdata, uint8_t ratio);
 /* This will return a pointer to a string of the pokemon's current gender */
 char* select_gender_get(PokemonData* pdata);
 
-void select_gender_scene_on_enter(void* context);
-
 #endif // POKEMON_GENDER_H

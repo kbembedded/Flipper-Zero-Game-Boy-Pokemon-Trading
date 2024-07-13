@@ -2,7 +2,8 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static const char* gender_str[] = {
     "Unknown",
@@ -91,7 +92,7 @@ static void select_gender_selected_callback(void* context, uint32_t index) {
     scene_manager_previous_scene(pokemon_fap->scene_manager);
 }
 
-void select_gender_scene_on_enter(void* context) {
+void pokemon_scene_select_gender_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
     submenu_reset(pokemon_fap->submenu);
@@ -101,4 +102,16 @@ void select_gender_scene_on_enter(void* context) {
 
     submenu_add_item(
         pokemon_fap->submenu, "Male", 1, select_gender_selected_callback, pokemon_fap);
+}
+
+bool pokemon_scene_select_gender_on_event(void* context, SceneManagerEvent event)
+{
+	UNUSED(event);
+	UNUSED(context);
+
+	return false;
+}
+
+void pokemon_scene_select_gender_on_exit(void* context) {
+    UNUSED(context);
 }

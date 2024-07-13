@@ -5,7 +5,6 @@
 
 #pragma once
 
-void select_pokerus_scene_on_enter(void* context);
 const char* select_pokerus_status(PokemonFap* pokemon_fap);
 
 #endif // POKEMON_POKERUS_H

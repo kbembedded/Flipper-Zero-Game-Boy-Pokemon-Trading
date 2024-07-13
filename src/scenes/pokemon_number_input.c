@@ -5,13 +5,14 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/scenes/pokemon_menu.h>
+
+#include <src/scenes/pokemon_scene.h>
 
 static char number_buf[LEN_NUM_BUF];
 
 static bool select_number_input_validator(const char* text, FuriString* error, void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    uint32_t state = scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectLevelScene);
+    uint32_t state = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneLevel);
     int number;
     char* error_str;
     int min;
@@ -21,13 +22,13 @@ static bool select_number_input_validator(const char* text, FuriString* error, v
     unsigned int i;
 
     switch(state) {
-    case SelectLevelScene:
+    case PokemonSceneLevel:
         error_str = "Level must\nbe a number\nbetween\n2-100!";
         min = 2;
         max = 100;
         stat = STAT_LEVEL;
         break;
-    case SelectOTIDScene:
+    case PokemonSceneOTID:
         error_str = "OT ID must\nbe between\n0-65535!";
         min = 0;
         max = 65535;
@@ -65,20 +66,20 @@ static void select_number_input_callback(void* context) {
     scene_manager_previous_scene(pokemon_fap->scene_manager);
 }
 
-void select_number_scene_on_enter(void* context) {
+void pokemon_scene_select_number_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     char* header;
-    uint32_t state = scene_manager_get_scene_state(pokemon_fap->scene_manager, SelectLevelScene);
+    uint32_t state = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneLevel);
     int len;
     DataStat stat;
 
     switch(state) {
-    case SelectLevelScene:
+    case PokemonSceneLevel:
         header = "Enter level (numbers only)";
         len = LEN_LEVEL;
         stat = STAT_LEVEL;
         break;
-    case SelectOTIDScene:
+    case PokemonSceneOTID:
         header = "Enter OT ID (numbers only)";
         len = LEN_OT_ID;
         stat = STAT_OT_ID;
@@ -99,4 +100,17 @@ void select_number_scene_on_enter(void* context) {
     view_dispatcher_add_view(
         pokemon_fap->view_dispatcher, AppViewOpts, text_input_get_view(pokemon_fap->text_input));
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+}
+
+bool pokemon_scene_select_number_on_event(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void pokemon_scene_select_number_on_exit(void* context) {
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
 }
