@@ -10,7 +10,7 @@
 #include <src/scenes/include/pokemon_scene.h>
 
 #include <src/scenes/include/pokemon_menu.h>
-#include <src/scenes/include/pokemon_shiny.h>
+#include <src/include/pokemon_shiny.h>
 #include <src/include/pokemon_gender.h>
 #include <src/scenes/include/pokemon_pokerus.h>
 #include <src/include/unown_form.h>
@@ -180,7 +180,7 @@ void pokemon_scene_gen_on_enter(void* context) {
             buf,
             sizeof(buf),
             "Shiny:             %s",
-            select_shiny_is_shiny(pokemon_fap->pdata) ? "Yes" : "No");
+            pokemon_is_shiny(pokemon_fap->pdata) ? "Yes" : "No");
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonSceneShiny, scene_change_from_main_cb, pokemon_fap);
 
