@@ -4,13 +4,7 @@
 #include <src/include/pokemon_app.h>
 
 #include <src/scenes/include/pokemon_scene.h>
-
-static const char* pokerus_states[] = {
-    "Clean",
-    "Infected",
-    "Cured",
-    "",
-};
+#include <src/include/pokemon_pokerus.h>
 
 static const char* strains[] = {
     "None",
@@ -20,16 +14,6 @@ static const char* strains[] = {
     "D",
     "",
 };
-
-const char* select_pokerus_status(PokemonFap* pokemon_fap) {
-    uint8_t pokerus;
-
-    pokerus = pokemon_stat_get(pokemon_fap->pdata, STAT_POKERUS, NONE);
-
-    if(pokerus == 0x00) return pokerus_states[0];
-    if((pokerus & 0x0f) != 0x00) return pokerus_states[1];
-    return pokerus_states[2];
-}
 
 struct pokerus_itemlist {
     VariableItem* strain;
@@ -41,12 +25,7 @@ static void select_pokerus_rebuild_list(PokemonFap* pokemon_fap);
 
 static void select_strain_callback(VariableItem* item) {
     uint8_t index = variable_item_get_current_value_index(item);
-    uint8_t pokerus;
     PokemonFap* pokemon_fap = variable_item_get_context(item);
-
-    /* Need to read/modify/write the existing stat */
-    pokerus = pokemon_stat_get(pokemon_fap->pdata, STAT_POKERUS, NONE);
-    pokerus &= 0x0f;
 
     /* Need to set the new text from the mangled index */
     variable_item_set_current_value_text(item, strains[index]);
@@ -58,9 +37,8 @@ static void select_strain_callback(VariableItem* item) {
         index = 0x04; // Map this back to the A strain
     else
         index--;
-    pokerus |= (index << 4);
-    if((pokerus & 0xf0) == 0x00) pokerus = 0;
-    pokemon_stat_set(pokemon_fap->pdata, STAT_POKERUS, NONE, pokerus);
+
+    pokerus_set_strain(pokemon_fap->pdata, index);
 
     select_pokerus_rebuild_list(pokemon_fap);
     variable_item_list_set_selected_item(pokemon_fap->variable_item_list, 0);
@@ -68,14 +46,9 @@ static void select_strain_callback(VariableItem* item) {
 
 static void select_days_callback(VariableItem* item) {
     uint8_t index = variable_item_get_current_value_index(item);
-    uint8_t pokerus;
     PokemonFap* pokemon_fap = variable_item_get_context(item);
 
-    /* Need to read/modify/write the existing stat */
-    pokerus = pokemon_stat_get(pokemon_fap->pdata, STAT_POKERUS, NONE);
-    pokerus &= 0xf0;
-    pokerus |= index;
-    pokemon_stat_set(pokemon_fap->pdata, STAT_POKERUS, NONE, pokerus);
+    pokerus_set_days(pokemon_fap->pdata, index);
 
     select_pokerus_rebuild_list(pokemon_fap);
     variable_item_list_set_selected_item(pokemon_fap->variable_item_list, 1);

@@ -12,7 +12,7 @@
 #include <src/scenes/include/pokemon_menu.h>
 #include <src/include/pokemon_shiny.h>
 #include <src/include/pokemon_gender.h>
-#include <src/scenes/include/pokemon_pokerus.h>
+#include <src/include/pokemon_pokerus.h>
 #include <src/include/unown_form.h>
 
 static void scene_change_from_main_cb(void* context, uint32_t index) {
@@ -188,7 +188,7 @@ void pokemon_scene_gen_on_enter(void* context) {
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonSceneGender, scene_change_from_main_cb, pokemon_fap);
 
-        snprintf(buf, sizeof(buf), "Pokerus:       %s", select_pokerus_status(pokemon_fap));
+        snprintf(buf, sizeof(buf), "Pokerus:       %s", pokerus_get_status_str(pokemon_fap->pdata));
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonScenePokerus, scene_change_from_main_cb, pokemon_fap);
 
