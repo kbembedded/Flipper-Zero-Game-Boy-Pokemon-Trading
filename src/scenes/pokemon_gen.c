@@ -10,10 +10,7 @@
 #include <src/scenes/include/pokemon_scene.h>
 
 #include <src/scenes/include/pokemon_menu.h>
-#include <src/include/pokemon_shiny.h>
-#include <src/include/pokemon_gender.h>
-#include <src/include/pokemon_pokerus.h>
-#include <src/include/unown_form.h>
+#include <src/include/pokemon_attribute.h>
 
 static void scene_change_from_main_cb(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;

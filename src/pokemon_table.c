@@ -4,7 +4,7 @@
 #include <furi.h>
 
 #include <pokemon_icons.h>
-#include <src/include/pokemon_gender.h>
+#include <src/include/pokemon_attribute.h>
 #include <src/include/pokemon_table.h>
 #include <src/include/stats.h>
 

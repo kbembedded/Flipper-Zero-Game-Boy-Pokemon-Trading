@@ -1,5 +1,5 @@
-#ifndef POKEMON_GENDER_H
-#define POKEMON_GENDER_H
+#ifndef POKEMON_ATTRIBUTE_H
+#define POKEMON_ATTRIBUTE_H
 
 #pragma once
 
@@ -36,4 +36,19 @@ const char* pokemon_gender_get(PokemonData* pdata);
 
 void pokemon_gender_set(PokemonData* pdata, Gender gender);
 
-#endif // POKEMON_GENDER_H
+const char* pokerus_get_status_str(PokemonData* pdata);
+
+void pokerus_set_strain(PokemonData* pdata, uint8_t strain);
+
+void pokerus_set_days(PokemonData *pdata, uint8_t days);
+
+bool pokemon_is_shiny(PokemonData* pdata);
+
+void pokemon_set_shiny(PokemonData *pdata, bool shiny);
+
+/* Returns ascii char, or 0 if unown is not the current pokemon */
+char unown_form_get(PokemonData* pdata);
+
+void unown_form_set(PokemonData* pdata, char letter);
+
+#endif // POKEMON_ATTRIBUTE_H

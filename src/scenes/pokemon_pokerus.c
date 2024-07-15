@@ -4,7 +4,7 @@
 #include <src/include/pokemon_app.h>
 
 #include <src/scenes/include/pokemon_scene.h>
-#include <src/include/pokemon_pokerus.h>
+#include <src/include/pokemon_attribute.h>
 
 static const char* strains[] = {
     "None",

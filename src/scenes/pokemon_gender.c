@@ -2,7 +2,7 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/include/pokemon_gender.h>
+#include <src/include/pokemon_attribute.h>
 
 #include <src/scenes/include/pokemon_scene.h>
 

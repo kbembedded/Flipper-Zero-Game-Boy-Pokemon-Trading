@@ -7,7 +7,7 @@
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 #include <src/include/pokemon_char_encode.h>
-#include <src/include/unown_form.h>
+#include <src/include/pokemon_attribute.h>
 
 #include <src/scenes/include/pokemon_scene.h>
 
