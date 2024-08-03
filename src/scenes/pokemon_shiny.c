@@ -10,7 +10,7 @@ static void select_shiny_selected_callback(void* context, uint32_t index) {
 
     pokemon_set_shiny(pokemon_fap->pdata, (bool)index);
 
-    scene_manager_previous_scene(pokemon_fap->scene_manager);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, PokemonSceneBack);
 }
 
 void pokemon_scene_select_shiny_on_enter(void* context) {
@@ -26,9 +26,16 @@ void pokemon_scene_select_shiny_on_enter(void* context) {
 }
 
 bool pokemon_scene_select_shiny_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom && event.event & PokemonSceneBack) {
+        scene_manager_previous_scene(pokemon_fap->scene_manager);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_shiny_on_exit(void* context) {

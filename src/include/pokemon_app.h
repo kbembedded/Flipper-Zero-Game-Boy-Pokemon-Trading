@@ -42,11 +42,12 @@ struct pokemon_fap {
 typedef struct pokemon_fap PokemonFap;
 
 typedef enum {
-    AppViewMainMenu,
-    AppViewOpts, // Generic view ID meant for module re-use
+    AppViewSubmenu,
+    AppViewTextInput,
+    AppViewVariableItem,
+    AppViewDialogEx,
     AppViewSelectPokemon,
     AppViewTrade,
-    AppViewExitConfirm,
 } AppView;
 
 #endif /* POKEMON_APP_H */

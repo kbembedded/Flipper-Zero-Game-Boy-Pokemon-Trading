@@ -10,6 +10,12 @@
 typedef enum {
 #include "pokemon_scene_config.h"
     PokemonSceneNum,
+    /* Magic number to send on an event to search through scene history and
+     * change to a previous scene.
+     */
+    PokemonSceneSearch = (1 << 30),
+    /* Magic number to send on an event to trigger going back a scene */
+    PokemonSceneBack = (1 << 31),
 } PokemonScene;
 #undef ADD_SCENE
 

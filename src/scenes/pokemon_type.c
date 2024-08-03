@@ -69,11 +69,7 @@ void pokemon_scene_select_type_on_enter(void* context) {
             vitype[i], namedlist_name_get_pos(pokemon_fap->pdata->type_list, pos));
     }
 
-    view_dispatcher_add_view(
-        pokemon_fap->view_dispatcher,
-        AppViewOpts,
-        variable_item_list_get_view(pokemon_fap->variable_item_list));
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewVariableItem);
 }
 
 bool pokemon_scene_select_type_on_event(void* context, SceneManagerEvent event) {
@@ -83,8 +79,5 @@ bool pokemon_scene_select_type_on_event(void* context, SceneManagerEvent event) 
 }
 
 void pokemon_scene_select_type_on_exit(void* context) {
-    PokemonFap* pokemon_fap = (PokemonFap*)context;
-
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
-    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    UNUSED(context);
 }

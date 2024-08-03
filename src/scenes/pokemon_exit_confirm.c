@@ -9,16 +9,10 @@
 #include <src/views/select_pokemon.h>
 #include <src/views/trade.h>
 
-static bool pokemon_scene_exit_confirm_back_event_callback(void* context) {
-    UNUSED(context);
-
-    return true;
-}
-
 static void pokemon_scene_exit_confirm_dialog_callback(DialogExResult result, void* context) {
     PokemonFap* pokemon_fap = context;
 
-    scene_manager_handle_custom_event(pokemon_fap->scene_manager, result);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, result);
 }
 
 void pokemon_scene_exit_confirm_on_enter(void* context) {
@@ -42,16 +36,7 @@ void pokemon_scene_exit_confirm_on_enter(void* context) {
     dialog_ex_set_context(dialog_ex, pokemon_fap);
     dialog_ex_set_result_callback(dialog_ex, pokemon_scene_exit_confirm_dialog_callback);
 
-    /* Disable the existing navigation event handler to prevent handling further
-     * back events. Going back to the main menu as well as going back to the
-     * gen menu will re-enable the proper navigation handler.
-     */
-    view_dispatcher_set_navigation_event_callback(
-        pokemon_fap->view_dispatcher, pokemon_scene_exit_confirm_back_event_callback);
-
-    view_dispatcher_add_view(
-        pokemon_fap->view_dispatcher, AppViewOpts, dialog_ex_get_view(pokemon_fap->dialog_ex));
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewDialogEx);
 }
 
 bool pokemon_scene_exit_confirm_on_event(void* context, SceneManagerEvent event) {
@@ -91,9 +76,6 @@ bool pokemon_scene_exit_confirm_on_event(void* context, SceneManagerEvent event)
 }
 
 void pokemon_scene_exit_confirm_on_exit(void* context) {
-    PokemonFap* pokemon_fap = (PokemonFap*)context;
-
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
-    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    UNUSED(context);
 }
 

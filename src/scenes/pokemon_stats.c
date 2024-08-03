@@ -29,12 +29,21 @@ void pokemon_scene_select_stats_on_enter(void* context) {
             select_stats_selected_callback,
             pokemon_fap);
     }
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
 }
 
 bool pokemon_scene_select_stats_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom && event.event & PokemonSceneBack) {
+        scene_manager_previous_scene(pokemon_fap->scene_manager);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_stats_on_exit(void* context) {

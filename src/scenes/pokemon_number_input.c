@@ -63,7 +63,7 @@ static bool select_number_input_validator(const char* text, FuriString* error, v
 static void select_number_input_callback(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
-    scene_manager_previous_scene(pokemon_fap->scene_manager);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, PokemonSceneBack);
 }
 
 void pokemon_scene_select_number_on_enter(void* context) {
@@ -97,20 +97,22 @@ void pokemon_scene_select_number_on_enter(void* context) {
         pokemon_fap->text_input, select_number_input_callback, pokemon_fap, number_buf, len, true);
     text_input_set_header_text(pokemon_fap->text_input, header);
 
-    view_dispatcher_add_view(
-        pokemon_fap->view_dispatcher, AppViewOpts, text_input_get_view(pokemon_fap->text_input));
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewTextInput);
 }
 
 bool pokemon_scene_select_number_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom && event.event & PokemonSceneBack) {
+        scene_manager_previous_scene(pokemon_fap->scene_manager);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_number_on_exit(void* context) {
-    PokemonFap* pokemon_fap = (PokemonFap*)context;
-
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
-    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewOpts);
+    UNUSED(context);
 }

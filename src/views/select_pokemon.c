@@ -1,9 +1,11 @@
 #include <gui/elements.h>
+#include <gui/view_dispatcher.h>
 #include <pokemon_icons.h>
 
-#include <src/scenes/include/pokemon_menu.h>
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
+
+#include <src/scenes/include/pokemon_scene.h>
 
 struct select_model {
     uint8_t curr_pokemon;
@@ -15,7 +17,7 @@ struct select_model {
 struct select_ctx {
     View* view;
     PokemonData* pdata;
-    SceneManager* scene_manager;
+    ViewDispatcher* view_dispatcher;
 };
 
 static void select_pokemon_render_callback(Canvas* canvas, void* model) {
@@ -73,7 +75,7 @@ static bool select_pokemon_input_callback(InputEvent* event, void* context) {
     /* Advance to next view with the selected pokemon */
     case InputKeyOk:
         pokemon_stat_set(select->pdata, STAT_NUM, NONE, selected_pokemon);
-        scene_manager_previous_scene(select->scene_manager);
+	view_dispatcher_send_custom_event(select->view_dispatcher, PokemonSceneBack);
         consumed = true;
         break;
 
@@ -148,7 +150,6 @@ void select_pokemon_enter_callback(void* context) {
 void* select_pokemon_alloc(
     PokemonData* pdata,
     ViewDispatcher* view_dispatcher,
-    SceneManager* scene_manager,
     uint32_t viewid) {
     furi_assert(pdata);
 
@@ -156,8 +157,7 @@ void* select_pokemon_alloc(
 
     select->view = view_alloc();
     select->pdata = pdata;
-    select->scene_manager = scene_manager;
-    select->pdata = pdata;
+    select->view_dispatcher = view_dispatcher;
 
     view_set_context(select->view, select);
     view_allocate_model(select->view, ViewModelTypeLockFree, sizeof(struct select_model));

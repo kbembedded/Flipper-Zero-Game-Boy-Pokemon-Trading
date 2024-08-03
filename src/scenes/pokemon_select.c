@@ -1,5 +1,7 @@
 #include <src/include/pokemon_app.h>
 
+#include <src/scenes/include/pokemon_scene.h>
+
 void pokemon_scene_select_pokemon_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     // switch to select pokemon scene
@@ -9,9 +11,16 @@ void pokemon_scene_select_pokemon_on_enter(void* context) {
 }
 
 bool pokemon_scene_select_pokemon_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom && event.event & PokemonSceneBack) {
+        scene_manager_previous_scene(pokemon_fap->scene_manager);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_pokemon_on_exit(void* context) {

@@ -23,7 +23,7 @@ static void select_item_selected_callback(void* context, uint32_t index) {
             pokemon_stat_get(pokemon_fap->pdata, STAT_HELD_ITEM, item)));
 
     /* Move back to Gen menu. This assumes this submenu is only ever used in Gen II */
-    scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, PokemonSceneGenIITrade);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, (PokemonSceneSearch | PokemonSceneGenIITrade));
 }
 
 static void select_item_index_callback(void* context, uint32_t index) {
@@ -31,7 +31,7 @@ static void select_item_index_callback(void* context, uint32_t index) {
 
     /* Move to next scene */
     scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet, index);
-    scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneItemSet);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, PokemonSceneItemSet);
 }
 
 void pokemon_scene_select_item_on_enter(void* context) {
@@ -67,12 +67,27 @@ void pokemon_scene_select_item_on_enter(void* context) {
         pokemon_fap->submenu,
         scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet));
     scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneItemSet, 0);
+
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
 }
 
 bool pokemon_scene_select_item_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event & PokemonSceneBack)
+            scene_manager_previous_scene(pokemon_fap->scene_manager);
+        else if (event.event & PokemonSceneSearch)
+            scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, (event.event & ~PokemonSceneSearch));
+        else
+            scene_manager_next_scene(pokemon_fap->scene_manager, event.event);
+
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_item_on_exit(void* context) {
@@ -104,12 +119,23 @@ void pokemon_scene_select_item_set_on_enter(void* context) {
     }
 }
 
-bool pokemon_scene_select_item_set_on_event(void* context, SceneManagerEvent event)
-{
-	UNUSED(event);
-	UNUSED(context);
+bool pokemon_scene_select_item_set_on_event(void* context, SceneManagerEvent event) {
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
 
-	return false;
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event & PokemonSceneBack)
+            scene_manager_previous_scene(pokemon_fap->scene_manager);
+        else if (event.event & PokemonSceneSearch)
+            scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, (event.event & ~PokemonSceneSearch));
+        else
+            scene_manager_next_scene(pokemon_fap->scene_manager, event.event);
+
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_select_item_set_on_exit(void* context) {

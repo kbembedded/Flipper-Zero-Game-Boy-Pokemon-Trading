@@ -16,13 +16,8 @@ static void scene_change_from_main_cb(void* context, uint32_t index) {
      * we return.
      */
     scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMainMenu, index);
-    scene_manager_next_scene(pokemon_fap->scene_manager, index);
-}
 
-bool main_menu_back_event_callback(void* context) {
-    furi_assert(context);
-    PokemonFap* pokemon_fap = context;
-    return scene_manager_handle_back_event(pokemon_fap->scene_manager);
+    view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, index);
 }
 
 void pokemon_scene_main_menu_on_enter(void* context) {
@@ -54,16 +49,19 @@ void pokemon_scene_main_menu_on_enter(void* context) {
         pokemon_fap->submenu,
         scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMainMenu));
 
-    view_dispatcher_set_navigation_event_callback(
-        pokemon_fap->view_dispatcher, main_menu_back_event_callback);
-
-    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewMainMenu);
+    view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
 }
 
 bool pokemon_scene_main_menu_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
-    UNUSED(event);
-    return false;
+    PokemonFap* pokemon_fap = context;
+    bool consumed = false;
+
+    if (event.type == SceneManagerEventTypeCustom) {
+        scene_manager_next_scene(pokemon_fap->scene_manager, event.event);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 void pokemon_scene_main_menu_on_exit(void* context) {
