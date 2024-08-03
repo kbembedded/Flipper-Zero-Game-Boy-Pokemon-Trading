@@ -99,7 +99,7 @@
 
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
-#include <src/views/trade_patch_list.h>
+#include <src/include/patch_list.h>
 
 /* Uncomment the following line to enable graphics testing for the different
  * phases of the trade view. Pressing the okay button will step through each

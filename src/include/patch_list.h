@@ -7,10 +7,7 @@
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 
-struct patch_list {
-    uint8_t index;
-    struct patch_list* next;
-};
+struct patch_list;
 
 struct patch_list* plist_alloc(void);
 

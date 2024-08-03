@@ -1,5 +1,9 @@
 #include <src/include/pokemon_app.h>
-#include <src/views/trade_patch_list.h>
+
+struct patch_list {
+    uint8_t index;
+    struct patch_list* next;
+};
 
 struct patch_list* plist_alloc(void) {
     struct patch_list* plist = NULL;
