@@ -180,6 +180,14 @@ void pokemon_scene_gen_on_enter(void* context) {
     submenu_add_item(
         pokemon_fap->submenu, "Trade PKMN", PokemonSceneTrade, scene_change_from_main_cb, pokemon_fap);
 
+    if (trade_connected(pokemon_fap->trade)) {
+        submenu_add_item(pokemon_fap->submenu,
+                         "Reset Connection",
+                         PokemonSceneResetConfirm,
+                         scene_change_from_main_cb,
+                         pokemon_fap);
+    }
+
     /* TODO: Add Save pokemon option here */
 
     /* HACK: No matter what gen were in, we just store the scene state in PokemonSceneGenITrade */

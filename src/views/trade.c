@@ -965,3 +965,26 @@ void trade_free(ViewDispatcher* view_dispatcher, uint32_t view_id, void* trade_c
     pokemon_data_free(trade->input_pdata);
     free(trade);
 }
+
+void trade_reset_connection(void* trade_ctx) {
+    struct trade_ctx *trade = trade_ctx;
+
+    with_view_model(
+        trade->view,
+        struct trade_model * model,
+        { model->gameboy_status = GAMEBOY_CONN_FALSE; },
+        false);
+}
+
+bool trade_connected(void* trade_ctx) {
+    struct trade_ctx *trade = trade_ctx;
+    bool connected = false;
+
+    with_view_model(
+        trade->view,
+        struct trade_model * model,
+        { connected = (model->gameboy_status > GAMEBOY_CONN_FALSE); },
+        false);
+
+    return connected;
+}

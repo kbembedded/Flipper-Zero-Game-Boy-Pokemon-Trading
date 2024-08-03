@@ -15,6 +15,7 @@ The video below trades a Bulbasaur from the Flipper to a Game Boy Color with Pok
     - [Customizing Pokemon](#customizing-pokemon)
   - [Trade](#trade-pkmn)
     - [Modifying Traded Pokemon](#modifying-traded-pokemon)
+    - [Reset Trade Connection State](#reset-trade-connection-state)
 - [How it Works / Build your own Interface](#how-does-it-work)
 
 
@@ -373,6 +374,15 @@ On the Game Boy, select a Pokemon to trade with the Flipper. Confirming the trad
 Once a trade is complete, the Pokemon traded from the Game Boy to the Flipper is kept in the Flipper's memory. It is possible to go back from the trade screen to the Gen I/II customization menu. There, the Pokemon can be modified; e.g. adjust the EV/IV, levels, move set, nickname, OT ID#/Name, etc. and traded back by re-entering the `Trade PKMN` option.
 
 The Game Boy should remain on and in the trade room. When the Flipper re-enters the `Trade PKMN` option, the Game Boy can re-select the trade table by pressing `A` at it and the whole trade process can be restarted. If the Game Boy is turned off, then the Flipper currently must back all the way out to reset the trade status so the Game Boy can re-establish the initial connection.
+
+---
+
+#### Reset Trade Connection State
+It is possible to reset the Flipper's connection state to having never been connected to a Game Boy. This allows the Flipper to restart communication with a Game Boy if it was accidentally turned off, for example, and the Game Boy needs to re-enter the Trade Center. Doing this keeps the current Pokemon the Flipper has in memory intact.
+
+This can also be used to leverage the Flipper to trade a pokemon between two Pokemon games with only a single Game Boy. For example, trade from Pokemon Blue to the Flipper (and then modifying the Pokemon on the Flipper if desired), resetting the trade state on the Flipper, swap the Game Boy game to Pokemon Silver, and on both the Game Boy and Flipper, start the trade process (using Time Capsule trade mode on the Pokemon Silver game).
+
+Once a connection has been established between the Flipper and a Pokemon game, the option `Reset Connection` will appear in the configuration screen under `Trade PKMN`. The Flipper will then ask for confirmation of the operation.
 
 ---
 
