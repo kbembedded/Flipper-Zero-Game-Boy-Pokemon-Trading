@@ -33,13 +33,13 @@
   - [x] Add images for the level selection screen, stats selection screen, and move selection screens as per the original README  
 - Codebase  
   - [x] Reimplement Logging calls  
-  - [ ] Clean up the codebase as it is now, there are a lot of optimizations in speed and code complexity that can be made, especially in added code in pokemon_app and maybe some code reduction/reuse in scenes  
-  - [ ] Consider using a single View in main app struct and only allocate a view as needed to reduce memory footprint  
+  - [x] Clean up the codebase as it is now, there are a lot of optimizations in speed and code complexity that can be made, especially in added code in pokemon_app and maybe some code reduction/reuse in scenes  
+  - [x] Consider using a single View in main app struct and only allocate a view as needed to reduce memory footprint  
 
 - Future Wants  
-  - [ ] Trading to Gen II games with both Gen I and Gen II Pokemon  
+  - [x] Trading to Gen II games with both Gen I and Gen II Pokemon  
   - [ ] Enable IR mystery gift usage in Gen II using Flipper  
-  - [ ] Be able to set up multiple Pokemon to be able to trade more than one per trip to trade center  
+  - [x] Be able to set up multiple Pokemon to be able to trade more than one per trip to trade center  
   - [x] Be able to trade back and forth for e.g. trading a Pokemon that evolves only when traded  
   - [x] Would Separating out link cable states result in a cleaner API?  
   - [ ] Implement some simple logic to be able to "battle" the Flipper?  

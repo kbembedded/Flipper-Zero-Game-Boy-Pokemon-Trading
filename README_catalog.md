@@ -6,11 +6,11 @@ Tool for trading Pokemon from the Flipper Zero to Generation I and II Game Boy g
 
 No longer causes the OK button to break when using the pinout for older MALVEKE (MLVK2.5) PCBs! Users of MALVEKE PCBs Rev. <= 2.5 no longer need to reset the Flipper after a trade and are able to modify the traded Pokemon!
 
-See the project's [README on GitHub](https://github.com/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md) for more detailed instructions on the application and all of the customization options for Pokemon.
+See the project's README on GitHub https://github.com/KBEmbedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md for more detailed instructions on the application and all of the customization options for Pokemon.
 
 ## Connection: Flipper Zero GPIO - Game Boy
 
-See the project's [README on GitHub](https://github.com/EstebanFuentealba/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md) for Link Cable interface adapters available on Tindie.
+See the project's README on GitHub https://github.com/kbembedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md#hardware-interface for Link Cable interface adapters available on Tindie.
 
 The Original pinout is as follows:
 
