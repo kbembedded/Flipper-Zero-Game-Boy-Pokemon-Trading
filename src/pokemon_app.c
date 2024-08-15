@@ -80,20 +80,20 @@ void free_app(PokemonFap* pokemon_fap) {
     gblink_free(pokemon_fap->gblink_handle);
 
     // Submenu
-    submenu_free(pokemon_fap->submenu);
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
+    submenu_free(pokemon_fap->submenu);
 
     // text input
-    text_input_free(pokemon_fap->text_input);
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewTextInput);
+    text_input_free(pokemon_fap->text_input);
 
     // Vairable item list
-    variable_item_list_free(pokemon_fap->variable_item_list);
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewVariableItem);
+    variable_item_list_free(pokemon_fap->variable_item_list);
 
     // Dialog ex
-    dialog_ex_free(pokemon_fap->dialog_ex);
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewDialogEx);
+    dialog_ex_free(pokemon_fap->dialog_ex);
 
     view_dispatcher_free(pokemon_fap->view_dispatcher);
 
