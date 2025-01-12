@@ -1,5 +1,8 @@
 # Changelog - Patch Notes
 
+## Version 2.3
+- Fix potential bug in copying incoming trade data to the live working struct
+
 ## Version 2.2
 **New Features**
 - Update to gblink v0.63 which includes saving/loading of pin configurations for the EXT link interface
