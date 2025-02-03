@@ -1,6 +1,7 @@
 ADD_SCENE(pokemon,	main_menu,		MainMenu)
 ADD_SCENE(pokemon,	gen,			GenITrade)
 ADD_SCENE(pokemon,	gen,			GenIITrade)
+ADD_SCENE(pokemon,	mystery_gift,		GenIIMysteryGift)
 ADD_SCENE(pokemon,	select_pokemon,		Select)
 ADD_SCENE(pokemon,	select_name,		Nickname)
 ADD_SCENE(pokemon,	select_number,		Level)
