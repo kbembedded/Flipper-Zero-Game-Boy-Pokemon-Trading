@@ -93,8 +93,10 @@ struct __attribute__((__packed__)) pokemon_party_data_gen_ii {
     uint16_t spc_ev;
     uint16_t iv;
     uint8_t move_pp[4];
+    /* After a trade, friendship is always reset to 120, no use changing it */
     uint8_t friendship;
     uint8_t pokerus;
+    /* Only used in Crystal, not worth implementing unless someone really wants it */
     uint16_t caught_data;
     /* Level is normally calculated from exp, however, level is more human
      * readable/digestable compared to exp. Therefore, we set level and then
