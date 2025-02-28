@@ -90,7 +90,6 @@
 #include <furi_hal.h>
 
 #include <dolphin/dolphin.h>
-#include <notification/notification_messages.h>
 
 #include <gui/elements.h>
 #include <gui/view.h>
@@ -222,13 +221,12 @@ struct trade_ctx {
     struct patch_list* patch_list;
     void* gblink_handle;
     PokemonData* pdata;
-    NotificationApp* notifications;
 };
 
 /* These are the needed variables for the draw callback */
 struct trade_model {
     render_gameboy_state_t gameboy_status;
-    bool ledon; // Controls the blue LED during trade
+    bool step; // Controls the animation frame during trade
     uint8_t curr_pokemon;
     PokemonData* pdata;
 };
@@ -321,21 +319,6 @@ static void pokemon_plist_recreate_callback(void* context, uint32_t arg) {
     plist_create(&(trade->patch_list), trade->pdata);
 }
 
-/* Call this at any point to reset the timer on the backlight turning off.
- * During trade, this should get called pretty frequently so long as data
- * is moving in and out.
- *
- * I hesitate to force the backlight on, as I don't want to be responsible
- * for draining someone's battery on accident.
- */
-static void trade_backlight_bump_callback(void* context, uint32_t arg) {
-    furi_assert(context);
-    UNUSED(arg);
-    struct trade_ctx* trade = context;
-
-    notification_message(trade->notifications, &sequence_display_backlight_on);
-}
-
 static void trade_draw_bottom_bar(Canvas* const canvas) {
     furi_assert(canvas);
 
@@ -401,15 +384,14 @@ static void trade_draw_pkmn_avatar(Canvas* canvas, PokemonData* pdata) {
     canvas_draw_xbm(
         canvas, 0, 0, pdata->bitmap->width, pdata->bitmap->height, pdata->bitmap->data);
 
-    furi_hal_light_set(LightBlue, 0x00);
     furi_hal_light_set(LightGreen, 0x00);
 }
 
-/* Called every 250 ms on a timer. This controls the blue LED when in TRADING
+/* Called every 250 ms on a timer. This controls the animation when in TRADING
  * state. This is necessary as Flipper OS does not make any guarantees on when
  * draw updates may or may not be called. There are situations where a draw
  * update is called much faster. Therefore, we need to control the update rate
- * via the ledon view_model variable.
+ * via the step view_model variable.
  */
 static void trade_draw_timer_callback(void* context) {
     furi_assert(context);
@@ -417,7 +399,7 @@ static void trade_draw_timer_callback(void* context) {
     struct trade_ctx* trade = (struct trade_ctx*)context;
 
     with_view_model(
-        trade->view, struct trade_model * model, { model->ledon ^= 1; }, true);
+        trade->view, struct trade_model * model, { model->step ^= 1; }, true);
 }
 
 static void trade_draw_callback(Canvas* canvas, void* view_model) {
@@ -450,13 +432,11 @@ static void trade_draw_callback(Canvas* canvas, void* view_model) {
         break;
     case GAMEBOY_TRADING:
         furi_hal_light_set(LightGreen, 0x00);
-        if(model->ledon) {
-            furi_hal_light_set(LightBlue, 0xff);
+        if(model->step)
             canvas_draw_icon(canvas, 0, 5, &I_gb_step_1);
-        } else {
-            furi_hal_light_set(LightBlue, 0x00);
+        else
             canvas_draw_icon(canvas, 0, 5, &I_gb_step_2);
-        }
+
         trade_draw_frame(canvas, "TRADING");
         break;
     case GAMEBOY_TRADE_CANCEL:
@@ -851,9 +831,6 @@ static void transferBit(void* context, uint8_t in_byte) {
         gblink_transfer(trade->gblink_handle, getTradeCentreResponse(trade));
         break;
     }
-
-    /* Each byte that comes in, bump the backlight timer so it stays on during a trade */
-    furi_timer_pending_callback(trade_backlight_bump_callback, trade, 0);
 }
 
 void trade_enter_callback(void* context) {
@@ -870,18 +847,20 @@ void trade_enter_callback(void* context) {
     }
     trade->trade_centre_state = TRADE_RESET;
     model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
-    model->ledon = false;
+    model->step = false;
 
     view_commit_model(trade->view, true);
 
     gblink_callback_set(trade->gblink_handle, transferBit, trade);
     gblink_nobyte_set(trade->gblink_handle, SERIAL_NO_DATA_BYTE);
+    gblink_led_blink_on_byte(trade->gblink_handle, true);
+    gblink_backlight_on_byte(trade->gblink_handle, true);
 
     gblink_start(trade->gblink_handle);
 
     /* Every 250 ms, trigger a draw update. 250 ms was chosen so that during
-     * the trade process, each update can flip the LED and screen to make the
-     * trade animation.
+     * the trade process, each update can flip the screen to make the trade
+     * animation.
      */
     trade->draw_timer = furi_timer_alloc(trade_draw_timer_callback, FuriTimerTypePeriodic, trade);
     furi_timer_start(trade->draw_timer, furi_ms_to_ticks(250));
@@ -930,7 +909,6 @@ void* trade_alloc(
     trade->pdata = pdata;
     trade->input_pdata = pokemon_data_alloc(pdata->gen);
     trade->patch_list = NULL;
-    trade->notifications = furi_record_open(RECORD_NOTIFICATION);
     trade->gblink_handle = gblink_handle;
 
     view_set_context(trade->view, trade);
@@ -954,8 +932,6 @@ void trade_free(ViewDispatcher* view_dispatcher, uint32_t view_id, void* trade_c
     struct trade_ctx* trade = (struct trade_ctx*)trade_ctx;
 
     view_dispatcher_remove_view(view_dispatcher, view_id);
-
-    furi_record_close(RECORD_NOTIFICATION);
 
     view_free(trade->view);
     pokemon_data_free(trade->input_pdata);
