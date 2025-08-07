@@ -231,16 +231,18 @@ static void unown_ivs_set(PokemonData* pdata, uint8_t ivs_mid) {
     pokemon_stat_set(pdata, STAT_IV, NONE, ivs);
 }
 
-char unown_form_get(PokemonData* pdata) {
+uint8_t unown_form_offs(PokemonData* pdata) {
     uint8_t form = unown_ivs_get(pdata);
 
+    return (form /= 10);
+}
+
+char unown_form_get(PokemonData* pdata) {
     /* The forumula is specifically the center two bits of each IV slapped
      * together and floor(/10)
      */
-    form /= 10;
-    form += 'A';
 
-    return form;
+    return (unown_form_offs(pdata) + 'A');
 }
 
 /* Try and get to the desired form by adding/subtracting the current IVs */

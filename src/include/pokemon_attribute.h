@@ -46,7 +46,15 @@ bool pokemon_is_shiny(PokemonData* pdata);
 
 void pokemon_set_shiny(PokemonData *pdata, bool shiny);
 
-/* Returns ascii char, or 0 if unown is not the current pokemon */
+/* Note that the follow don't do any kind of check on if the pokemon is unown.
+ * This is because these functions may still be used when a different pokemon
+ * is currently set in the structure. However, its a bit fucky since it uses
+ * the currently selected pokemon's IVs.
+ */
+/* Returns unown variant number from 0 */
+uint8_t unown_form_offs(PokemonData* pdata);
+
+/* Returns ascii char of unown pokemon */
 char unown_form_get(PokemonData* pdata);
 
 void unown_form_set(PokemonData* pdata, char letter);
