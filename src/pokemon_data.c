@@ -3,6 +3,7 @@
 
 #include <storage/storage.h>
 
+#include <src/include/pokemon_attribute.h>
 #include <src/include/pokemon_data.h>
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_char_encode.h>
@@ -357,9 +358,11 @@ uint8_t* pokemon_icon_get(PokemonData* pdata, int num) {
     File* file;
     FuriString* path;
     uint32_t size;
+    off_t offs;
     bool is_error = true;
 
-    if(pdata->bitmap_num != num) {
+    /* We always may need to rerender unown, the form may have changed. */
+    if(pdata->bitmap_num != num || pdata->bitmap_num == 201) {
         if(pdata->bitmap) {
             free(pdata->bitmap);
             pdata->bitmap = NULL;
@@ -369,8 +372,17 @@ uint8_t* pokemon_icon_get(PokemonData* pdata, int num) {
         path = furi_string_alloc_set(pdata->asset_path);
         furi_string_cat_printf(path, "all_sprites.fxbm");
 
+        /* Unown, global dex 201, has 26 variants.
+	 * This means that, dex 202 is actually going to be +26 in offset */
+	offs = (num - 1);
+        if (num == 201)
+            offs += unown_form_offs(pdata);
+        if (num > 201)
+            offs += 25;
+	offs *= FXBM_SPRITE_SIZE;
+
         if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
-            storage_file_seek(file, (num - 1) * FXBM_SPRITE_SIZE, true);
+            storage_file_seek(file, offs, true);
             if(storage_file_read(file, &size, sizeof(size)) == sizeof(size)) {
                 pdata->bitmap = malloc(size);
                 if(storage_file_read(file, pdata->bitmap, size) ==

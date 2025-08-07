@@ -231,6 +231,12 @@ static void unown_ivs_set(PokemonData* pdata, uint8_t ivs_mid) {
     pokemon_stat_set(pdata, STAT_IV, NONE, ivs);
 }
 
+uint8_t unown_form_offs(PokemonData* pdata) {
+    uint8_t form = unown_ivs_get(pdata);
+
+    return (form /= 10);
+}
+
 char unown_form_get(PokemonData* pdata) {
     uint8_t form = unown_ivs_get(pdata);
 
