@@ -26,8 +26,8 @@
 #define LEN_NICKNAME 11 // Max 10 chars
 #define LEN_OT_NAME 8 // Max 7 chars
 #define LEN_NUM_BUF 6
-#define LEN_LEVEL 4 // Max 3 digits
-#define LEN_OT_ID 6 // Max 5 digits
+//#define LEN_LEVEL 4 // Max 3 digits
+//#define LEN_OT_ID 6 // Max 5 digits
 
 typedef struct pokemon_party_data_gen_i PokemonPartyGenI;
 typedef struct trade_block_gen_i TradeBlockGenI;

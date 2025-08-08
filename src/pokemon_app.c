@@ -46,6 +46,11 @@ PokemonFap* pokemon_alloc() {
     view_dispatcher_add_view(
         view_dispatcher, AppViewTextInput, text_input_get_view(pokemon_fap->text_input));
 
+    // Number input
+    pokemon_fap->number_input = number_input_alloc();
+    view_dispatcher_add_view(
+        view_dispatcher, AppViewNumberInput, number_input_get_view(pokemon_fap->number_input));
+
     // Submenu
     pokemon_fap->submenu = submenu_alloc();
     view_dispatcher_add_view(
@@ -81,6 +86,10 @@ void free_app(PokemonFap* pokemon_fap) {
     // Submenu
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
     submenu_free(pokemon_fap->submenu);
+
+    // Number input
+    view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewNumberInput);
+    number_input_free(pokemon_fap->number_input);
 
     // text input
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewTextInput);

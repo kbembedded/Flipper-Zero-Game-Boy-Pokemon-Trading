@@ -10,6 +10,7 @@
 #include <gui/modules/dialog_ex.h>
 #include <gui/modules/submenu.h>
 #include <gui/modules/text_input.h>
+#include <gui/modules/number_input.h>
 #include <gui/modules/variable_item_list.h>
 #include <gblink.h>
 
@@ -25,6 +26,7 @@ struct pokemon_fap {
     void* trade;
     Submenu* submenu;
     TextInput* text_input;
+    NumberInput* number_input;
     VariableItemList* variable_item_list;
     DialogEx* dialog_ex;
 
@@ -44,6 +46,7 @@ typedef struct pokemon_fap PokemonFap;
 typedef enum {
     AppViewSubmenu,
     AppViewTextInput,
+    AppViewNumberInput,
     AppViewVariableItem,
     AppViewDialogEx,
     AppViewSelectPokemon,
