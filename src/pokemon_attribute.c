@@ -13,17 +13,14 @@ static const char* gender_str[] = {
 /* This returns a string pointer if the gender is static, NULL if it is not and
  * the gender needs to be calculated.
  */
-const char* pokemon_gender_is_static(PokemonData* pdata, uint8_t ratio) {
+const char* pokemon_gender_is_static(uint8_t ratio) {
     switch(ratio) {
-    case 0xFF:
+    case GENDER_UNKNOWN:
         return gender_str[0];
-    case 0xFE:
+    case GENDER_F100:
         return gender_str[1];
-    case 0x00:
-        if(pokemon_stat_get(pdata, STAT_NUM, NONE) != 0xEB) { // Tyrogue can be either gender
-            return gender_str[2];
-        }
-        break;
+    case GENDER_F0:
+        return gender_str[2];
     default:
         break;
     }
@@ -40,7 +37,7 @@ const char* pokemon_gender_get(PokemonData* pdata) {
     uint8_t atk_iv;
     const char* rc;
 
-    rc = pokemon_gender_is_static(pdata, ratio);
+    rc = pokemon_gender_is_static(ratio);
     if(rc) return rc;
 
     /* Falling through here means now we need to calculate the gender from
