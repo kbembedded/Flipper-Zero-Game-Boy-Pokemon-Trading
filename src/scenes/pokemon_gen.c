@@ -235,7 +235,7 @@ bool pokemon_scene_gen_on_event(void* context, SceneManagerEvent event) {
             /* If the pokemon's gender is static (always male, always female,
              * or unknown), then don't transition to the gender selection scene.
              */
-            if(pokemon_gender_is_static(pdata, gender_ratio))
+            if(pokemon_gender_is_static(gender_ratio))
                 goto out;
             break;
         }
