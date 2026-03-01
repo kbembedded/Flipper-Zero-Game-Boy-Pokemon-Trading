@@ -1,7 +1,7 @@
 #include <src/include/named_list.h>
 #include <src/include/pokemon_data.h>
 
-const NamedList move_list[] = {
+static const NamedList move_list[] = {
     {"No Move", 0x00, (GEN_I | GEN_II)},
     {"Absorb", 0x47, (GEN_I | GEN_II)},
     {"Acid", 0x33, (GEN_I | GEN_II)},
@@ -256,3 +256,7 @@ const NamedList move_list[] = {
     {"Zap Cannon", 0xC0, GEN_II},
     {},
 };
+
+const NamedList* move_nl_pointer_get() {
+	return move_list;
+}

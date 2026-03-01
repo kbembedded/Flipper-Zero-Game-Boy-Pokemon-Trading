@@ -115,10 +115,10 @@ PokemonData* pokemon_data_alloc(uint8_t gen) {
     pdata->gen = gen;
 
     /* Set up lists */
-    pdata->move_list = move_list;
-    pdata->type_list = type_list;
-    pdata->stat_list = stat_list;
-    pdata->item_list = item_list;
+    pdata->move_list = move_nl_pointer_get();
+    pdata->type_list = type_nl_pointer_get();
+    pdata->stat_list = stat_nl_pointer_get();
+    pdata->item_list = item_nl_pointer_get();
     pdata->pokemon_table = table_pointer_get();
 
     pdata->storage = furi_record_open(RECORD_STORAGE);

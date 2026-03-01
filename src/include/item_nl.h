@@ -3,6 +3,6 @@
 
 #pragma once
 
-extern const NamedList item_list[];
+const NamedList* item_nl_pointer_get(void);
 
 #endif // ITEM_NL_H
