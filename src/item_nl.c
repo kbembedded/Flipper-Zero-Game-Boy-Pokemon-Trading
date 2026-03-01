@@ -1,7 +1,7 @@
 #include <src/include/named_list.h>
 #include <src/include/pokemon_data.h>
 	
-const NamedList item_list[] = {
+static const NamedList item_list[] = {
 	{ "No Item",			0x00,	GEN_II },
 	{ "Amulet Coin",		0x5B,	GEN_II },
 	{ "Antidote",			0x09,	GEN_II },
@@ -229,3 +229,8 @@ const NamedList item_list[] = {
 	{ "Ylw Apricorn",		0x5C,	GEN_II },
 	{},
 };
+
+const NamedList* item_nl_pointer_get()
+{
+	return item_list;
+}

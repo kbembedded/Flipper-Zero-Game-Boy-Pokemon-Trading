@@ -1,7 +1,7 @@
 #include <src/include/named_list.h>
 #include <src/include/stat_nl.h>
 
-const NamedList stat_list[] = {
+static const NamedList stat_list[] = {
     {"Random IV, Zero EV", RANDIV_ZEROEV, 0},
     {"Random IV, Max EV / Level", RANDIV_LEVELEV, 0},
     {"Random IV, Max EV", RANDIV_MAXEV, 0},
@@ -10,3 +10,7 @@ const NamedList stat_list[] = {
     {"Max IV, Max EV", MAXIV_MAXEV, 0},
     {},
 };
+
+const NamedList* stat_nl_pointer_get() {
+	return stat_list;
+}

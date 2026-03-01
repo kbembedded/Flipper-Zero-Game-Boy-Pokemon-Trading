@@ -1,7 +1,7 @@
 #include <src/include/named_list.h>
 #include <src/include/pokemon_data.h>
 
-const NamedList type_list[] = {
+static const NamedList type_list[] = {
     {"Bug", 0x07, GEN_I},
     {"Dragon", 0x1A, GEN_I},
     {"Electric", 0x17, GEN_I},
@@ -20,3 +20,7 @@ const NamedList type_list[] = {
     /* Types are not transferred in gen ii */
     {},
 };
+
+const NamedList* type_nl_pointer_get() {
+	return type_list;
+}
