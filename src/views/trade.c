@@ -222,6 +222,7 @@ struct trade_ctx {
     struct patch_list* patch_list;
     void* gblink_handle;
     PokemonData* pdata;
+    TradeBlock *block;
     NotificationApp* notifications;
 };
 
@@ -395,11 +396,12 @@ static void trade_draw_frame(Canvas* canvas, const char* str) {
 static void trade_draw_pkmn_avatar(Canvas* canvas, PokemonData* pdata) {
     furi_assert(canvas);
     furi_assert(pdata);
+    struct fxbm_sprite* sprite = NULL;
 
     /* First, ensure the icon we want is already loaded in to pdata->bitmap */
-    pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM, NONE) + 1);
+    sprite = pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM, NONE) + 1);
     canvas_draw_xbm(
-        canvas, 0, 0, pdata->bitmap->width, pdata->bitmap->height, pdata->bitmap->data);
+        canvas, 0, 0, sprite->width, sprite->height, sprite->data);
 
     furi_hal_light_set(LightBlue, 0x00);
     furi_hal_light_set(LightGreen, 0x00);
@@ -797,6 +799,14 @@ static uint8_t getTradeCentreResponse(struct trade_ctx* trade) {
 
             /* Copy the traded-in Pokemon's main data to our struct */
             pokemon_stat_memcpy(trade->pdata, trade->input_pdata, in_pkmn_idx);
+
+	    pokemon_data_trade_block_set(trade->pdata, trade->block, in_pkmn_idx);
+	    /* XXX: Not sure how this will look long term, but, for now, swap
+	     * the data we just loaded in to info struct back in to our local
+	     * trade_block copy.
+	     */
+	    pokemon_data_trade_block_get(trade->pdata, trade->block);
+
             model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
 
             /* Schedule a callback outside of ISR context to rebuild the patch
@@ -886,6 +896,7 @@ void trade_enter_callback(void* context) {
     trade->draw_timer = furi_timer_alloc(trade_draw_timer_callback, FuriTimerTypePeriodic, trade);
     furi_timer_start(trade->draw_timer, furi_ms_to_ticks(250));
 
+    trade->block = pokemon_data_trade_block_get(trade->pdata, NULL);
     /* Create a trade patch list from the current trade block */
     plist_create(&(trade->patch_list), trade->pdata);
 }
@@ -903,6 +914,9 @@ void trade_exit_callback(void* context) {
     furi_hal_light_set(LightGreen, 0x00);
     furi_hal_light_set(LightBlue, 0x00);
     furi_hal_light_set(LightRed, 0x00);
+
+    /* Free our trade_block copy */
+    pokemon_data_trade_block_free(trade->block);
 
     /* Stop the timer, and deallocate it as the enter callback allocates it on entry */
     furi_timer_free(trade->draw_timer);
