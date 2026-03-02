@@ -1,5 +1,4 @@
 #include <pokemon_icons.h>
-#include "pokemon_data_i.h"
 
 #include <storage/storage.h>
 
@@ -16,6 +15,7 @@
 #include <src/include/move_nl.h>
 
 #include <src/missingno_i.h>
+#include <src/pokemon_data_i.h>
 
 #define RECALC_NONE 0x00
 #define RECALC_EXP 0x01
@@ -29,175 +29,123 @@
 
 #define FXBM_SPRITE_SIZE 404 // Each 56x56 sprite
 
+struct pdata_priv {
+    Storage* storage;
+    struct fxbm_sprite* bitmap;
+    uint8_t bitmap_num;
+    FuriString* asset_path;
+    /* Pointer to the main info struct */
+    struct pokemon_info* info;
+};
+
+/* XXX: This function header can eventually be removed */
+static void pokemon_exp_set(PokemonData* pdata, uint32_t exp);
+static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val);
+static void pokemon_stat_iv_calc(PokemonData* pdata, EvIv val);
+
 /* Text lookups to make debug output cleaner and easier to parse as a human */
 static char* stat_text_get(DataStat stat) {
     switch(stat) {
-    case STAT_ATK:
-        return "ATK";
-    case STAT_DEF:
-        return "DEF";
-    case STAT_SPD:
-        return "SPD";
-    case STAT_SPC:
-        return "SPC";
-    case STAT_SPC_ATK:
-        return "SPC_ATK";
-    case STAT_SPC_DEF:
-        return "SPC_DEF";
-    case STAT_HP:
-        return "HP";
-    case STAT_TYPE:
-        return "Type";
-    case STAT_MOVE:
-        return "Move";
-    case STAT_ATK_EV:
-        return "ATK_EV";
-    case STAT_DEF_EV:
-        return "DEF_EV";
-    case STAT_SPD_EV:
-        return "SPD_EV";
-    case STAT_SPC_ATK_EV:
-    case STAT_SPC_DEF_EV:
-    case STAT_SPC_EV:
-        return "SPC_EV";
-    case STAT_HP_EV:
-        return "HP_EV";
-    case STAT_IV:
-        return "IV";
-    case STAT_ATK_IV:
-        return "ATK_IV";
-    case STAT_DEF_IV:
-        return "DEF_IV";
-    case STAT_SPD_IV:
-        return "SPD_IV";
-    case STAT_SPC_ATK_IV:
-    case STAT_SPC_DEF_IV:
-    case STAT_SPC_IV:
-        return "SPC_IV";
-    case STAT_HP_IV:
-        return "HP_IV";
-    case STAT_LEVEL:
-        return "Lvl.";
-    case STAT_INDEX:
-        return "Idx.";
-    case STAT_NUM:
-        return "Num.";
-    case STAT_CONDITION:
-        return "Cond.";
-    case STAT_NICKNAME:
-        return "Nick.";
-    case STAT_OT_NAME:
-        return "OT Name";
-    case STAT_OT_ID:
-        return "OT ID";
-    case STAT_TRAINER_NAME:
-        return "Trainer Name";
-    case STAT_SEL:
-        return "EV/IV Sel."; // which EV/IV calc to use
-    case STAT_EXP:
-        return "Exp.";
-    case STAT_HELD_ITEM:
-        return "Held Item";
-    case STAT_POKERUS:
-        return "Pokerus";
-    default:
-        return "UNKNOWN STAT";
+    case STAT_ATK:          return "ATK";
+    case STAT_DEF:          return "DEF";
+    case STAT_SPD:          return "SPD";
+    case STAT_SPC:          return "SPC";
+    case STAT_SPC_ATK:      return "SPC_ATK";
+    case STAT_SPC_DEF:      return "SPC_DEF";
+    case STAT_HP:           return "HP";
+    case STAT_TYPE:         return "Type";
+    case STAT_MOVE:         return "Move";
+    case STAT_ATK_EV:       return "ATK_EV";
+    case STAT_DEF_EV:       return "DEF_EV";
+    case STAT_SPD_EV:       return "SPD_EV";
+    case STAT_SPC_ATK_EV:   [[fallthrough]];
+    case STAT_SPC_DEF_EV:   [[fallthrough]];
+    case STAT_SPC_EV:       return "SPC_EV";
+    case STAT_HP_EV:        return "HP_EV";
+    case STAT_IV:           return "IV";
+    case STAT_ATK_IV:       return "ATK_IV";
+    case STAT_DEF_IV:       return "DEF_IV";
+    case STAT_SPD_IV:       return "SPD_IV";
+    case STAT_SPC_ATK_IV:   [[fallthrough]];
+    case STAT_SPC_DEF_IV:   [[fallthrough]];
+    case STAT_SPC_IV:       return "SPC_IV";
+    case STAT_HP_IV:        return "HP_IV";
+    case STAT_LEVEL:        return "Lvl.";
+    case STAT_INDEX:        return "Idx.";
+    case STAT_NUM:          return "Num.";
+    case STAT_CONDITION:    return "Cond.";
+    case STAT_NICKNAME:     return "Nick.";
+    case STAT_OT_NAME:      return "OT Name";
+    case STAT_OT_ID:        return "OT ID";
+    case STAT_TRAINER_NAME: return "Trainer Name";
+    case STAT_SEL:          return "EV/IV Sel."; // which EV/IV calc to use
+    case STAT_EXP:          return "Exp.";
+    case STAT_HELD_ITEM:    return "Held Item";
+    case STAT_POKERUS:      return "Pokerus";
+    default:                return "UNKNOWN STAT";
     }
 }
 
-/* Allocates a chunk of memory for the trade data block and sets up some
- * default values.
- */
-PokemonData* pokemon_data_alloc(uint8_t gen) {
-    PokemonData* pdata;
 
-    pdata = malloc(sizeof(PokemonData));
-    pdata->gen = gen;
+/* Calculates stat from current level */
+static void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
+    furi_assert(pdata);
+    uint8_t iv;
+    uint16_t ev;
+    uint8_t base;
+    uint8_t level;
+    uint16_t calc;
 
-    /* Set up lists */
-    pdata->move_list = move_nl_pointer_get();
-    pdata->type_list = type_nl_pointer_get();
-    pdata->stat_list = stat_nl_pointer_get();
-    pdata->item_list = item_nl_pointer_get();
-    pdata->pokemon_table = table_pointer_get();
+    level = pokemon_stat_get(pdata, STAT_LEVEL, NONE);
+    base = table_stat_base_get(
+        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), stat, NONE);
+    ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS, NONE);
+    iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS, NONE);
 
-    pdata->storage = furi_record_open(RECORD_STORAGE);
-    pdata->asset_path = furi_string_alloc_set(APP_ASSETS_PATH());
-    storage_common_resolve_path_and_ensure_app_directory(pdata->storage, pdata->asset_path);
+    /* Gen I and II calculation */
+    // https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
+    calc = floor((((2 * (base + iv)) + floor(sqrt(ev) / 4)) * level) / 100);
 
-    switch(gen) {
-    case GEN_I:
-        /* Allocate trade block and set its size for the trade view to use */
-        pdata->trade_block_sz = sizeof(TradeBlockGenI);
-        pdata->party_sz = sizeof(PokemonPartyGenI) * 6;
-        pdata->trade_block = malloc(pdata->trade_block_sz);
+    if(stat == STAT_HP)
+        calc += (level + 10);
+    else
+        calc += 5;
 
-        /* The party_members element needs to be 0xff for unused */
-        memset(
-            ((TradeBlockGenI*)pdata->trade_block)->party_members,
-            0xFF,
-            sizeof(((TradeBlockGenI*)pdata->trade_block)->party_members));
+    pokemon_stat_set(pdata, stat, NONE, calc);
+}
 
-        pdata->party = ((TradeBlockGenI*)pdata->trade_block)->party;
+static void pokemon_exp_calc(PokemonData* pdata) {
+    furi_assert(pdata);
+    int level;
+    uint32_t exp;
+    uint8_t growth = table_stat_base_get(
+        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), STAT_BASE_GROWTH, NONE);
 
-        /* Set party count to 1 */
-        ((TradeBlockGenI*)pdata->trade_block)->party_cnt = 1;
-
-        /* Set the max pokedex number, 0 indexed */
-        pdata->dex_max = 150;
+    level = (int)pokemon_stat_get(pdata, STAT_LEVEL, NONE);
+    /* Calculate exp */
+    switch(growth) {
+    case GROWTH_FAST:
+        // https://bulbapedia.bulbagarden.net/wiki/Experience#Fast
+        exp = (4 * level * level * level) / 5;
         break;
-    case GEN_II:
-        /* Allocate trade block and set its size for the trade view to use */
-        pdata->trade_block_sz = sizeof(TradeBlockGenII);
-        pdata->party_sz = sizeof(PokemonPartyGenII) * 6;
-        pdata->trade_block = malloc(pdata->trade_block_sz);
-
-        /* The party_members element needs to be 0xff for unused */
-        memset(
-            ((TradeBlockGenII*)pdata->trade_block)->party_members,
-            0xFF,
-            sizeof(((TradeBlockGenII*)pdata->trade_block)->party_members));
-
-        pdata->party = ((TradeBlockGenII*)pdata->trade_block)->party;
-
-        /* Set party count to 1 */
-        ((TradeBlockGenII*)pdata->trade_block)->party_cnt = 1;
-
-        /* Set the max pokedex number, 0 indexed */
-        pdata->dex_max = 250;
+    case GROWTH_MEDIUM_FAST:
+        // https://bulbapedia.bulbagarden.net/wiki/Experience#Medium_Fast
+        exp = (level * level * level);
+        break;
+    case GROWTH_MEDIUM_SLOW:
+        // https://bulbapedia.bulbagarden.net/wiki/Experience#Medium_Slow
+        exp = (((level * level * level) * 6 / 5) - (15 * level * level) + (100 * level) - 140);
+        break;
+    case GROWTH_SLOW:
+        // https://bulbapedia.bulbagarden.net/wiki/Experience#Slow
+        exp = (5 * level * level * level) / 4;
         break;
     default:
-        furi_crash("Invalid Gen");
+        furi_crash("incorrect growth val");
         break;
     }
 
-    /* Trainer/OT name, not to exceed 7 characters! */
-    pokemon_name_set(pdata, STAT_TRAINER_NAME, "Flipper");
-    pokemon_name_set(pdata, STAT_OT_NAME, "Flipper");
-
-    /* OT trainer ID# */
-    pokemon_stat_set(pdata, STAT_OT_ID, NONE, 42069);
-
-    /* Notes:
-     * Move pp isn't explicitly set up, should be fine
-     * Catch/held isn't explicitly set up, should be okay for only Gen I support now
-     * Status condition isn't explicity let up, would you ever want to?
-     */
-
-    /* Set up initial pokemon and level */
-    /* This causes all other stats to be recalculated */
-    pokemon_stat_set(pdata, STAT_NUM, NONE, 0); // First Pokemon
-    pokemon_stat_set(pdata, STAT_LEVEL, NONE, 2); // Minimum level of 2
-
-    return pdata;
-}
-
-void pokemon_data_free(PokemonData* pdata) {
-    furi_record_close(RECORD_STORAGE);
-    free(pdata->trade_block);
-    if(pdata->bitmap && pdata->bitmap_num != 0) free(pdata->bitmap);
-    furi_string_free(pdata->asset_path);
-    free(pdata);
+    pokemon_exp_set(pdata, exp);
 }
 
 /* Recalculate values and stats based on their dependencies.
@@ -213,11 +161,30 @@ void pokemon_data_free(PokemonData* pdata) {
  * nickname:	depends on:	index
  * atk/def/etc:	depends on:	level, iv, ev, index
  */
-void pokemon_recalculate(PokemonData* pdata, uint8_t recalc) {
+static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
     furi_assert(pdata);
+    struct pdata_priv* priv = pdata->priv;
+    struct pokemon_info* info = priv->info;
+    uint8_t recalc;
     int i;
 
-    if(recalc == RECALC_NONE) return;
+    /* From the stat that was just updated, create a bitfield of stats that
+     * need to be recalculated from it.
+     */
+    switch (stat) {
+    case STAT_LEVEL:
+        recalc = (RECALC_STATS | RECALC_EXP | RECALC_EVS);
+	break;
+    case STAT_NUM:
+    case STAT_INDEX:
+        recalc = RECALC_ALL;
+	break;
+    case STAT_SEL:
+        recalc = (RECALC_EVS | RECALC_IVS | RECALC_STATS);
+	break;
+    default:
+        return;
+    }
 
     /* Ordered in order of priority for calculating other stats */
     if(recalc & RECALC_NICKNAME) pokemon_default_nickname_set(NULL, pdata, 0);
@@ -252,10 +219,10 @@ void pokemon_recalculate(PokemonData* pdata, uint8_t recalc) {
 
     if(recalc & RECALC_EXP) pokemon_exp_calc(pdata);
 
-    if(recalc & RECALC_EVS) pokemon_stat_ev_calc(pdata, pdata->stat_sel);
+    if(recalc & RECALC_EVS) pokemon_stat_ev_calc(pdata, info->stat_sel);
 
     /* This just rerolls the IVs, nothing really to calculate */
-    if(recalc & RECALC_IVS) pokemon_stat_iv_calc(pdata, pdata->stat_sel);
+    if(recalc & RECALC_IVS) pokemon_stat_iv_calc(pdata, info->stat_sel);
 
     /* Note: This will still end up calculating spc_def on gen i pokemon.
      * However, the way the accessors are set up the calculated value will
@@ -266,6 +233,32 @@ void pokemon_recalculate(PokemonData* pdata, uint8_t recalc) {
             pokemon_stat_calc(pdata, i);
         }
     }
+}
+
+/* This DOES NOT encode/decode characters, that needs to happen when sending
+ * this struct to the trade block.
+ */
+void pokemon_name_set_new(PokemonData* pdata, DataStat stat, char* name)
+{
+	furi_assert(pdata);
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+
+	switch (stat) {
+	case STAT_NICKNAME:
+		strlcpy(info->nickname, name, LEN_NAME_BUF);
+		break;
+	case STAT_OT_NAME:
+		strlcpy(info->ot_name, name, LEN_NAME_BUF);
+		break;
+	case STAT_TRAINER_NAME:
+		strlcpy(info->trainer_name, name, LEN_NAME_BUF);
+		break;
+	default:
+		furi_crash("name");
+		break;
+	}
+	FURI_LOG_D(TAG, "[data] %s name set to %s", stat_text_get(stat), name);
 }
 
 /* This needs to convert to encoded characters */
@@ -302,6 +295,33 @@ void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name) {
     /* Set the encoded name in the buffer */
     pokemon_str_to_encoded_array(ptr, name, len);
     FURI_LOG_D(TAG, "[data] %s name set to %s", stat_text_get(stat), name);
+
+    pokemon_name_set_new(pdata, stat, name);
+}
+
+/* This DOES NOT encode/decode characters, that needs to happen when sending
+ * this struct to the trade block.
+ */
+void pokemon_name_get_new(PokemonData* pdata, DataStat stat, char* dest, size_t len)
+{
+	furi_assert(pdata);
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+
+	switch (stat) {
+	case STAT_NICKNAME:
+		strlcpy(dest, info->nickname, len);
+		break;
+	case STAT_OT_NAME:
+		strlcpy(dest, info->ot_name, len);
+		break;
+	case STAT_TRAINER_NAME:
+		strlcpy(dest, info->trainer_name, len);
+		break;
+	default:
+		furi_crash("name_get invalid");
+		break;
+	}
 }
 
 void pokemon_name_get(PokemonData* pdata, DataStat stat, char* dest, size_t len) {
@@ -324,6 +344,8 @@ void pokemon_name_get(PokemonData* pdata, DataStat stat, char* dest, size_t len)
     }
 
     pokemon_encoded_array_to_str(dest, ptr, len);
+
+    pokemon_name_get_new(pdata, stat, dest, len);
 }
 
 /* If dest is not NULL, a copy of the default name is written to it as well */
@@ -352,33 +374,38 @@ void pokemon_default_nickname_set(char* dest, PokemonData* pdata, size_t n) {
 }
 
 /* Each sprite 56x56 is 404 bytes long */
-uint8_t* pokemon_icon_get(PokemonData* pdata, int num) {
+/* XXX: TODO: We don't need to thrash memory here by alloc and freeing
+ * bitmap every time we get a new sprite. We already assume that the sprite
+ * size is a constant anyway.
+ */
+struct fxbm_sprite* pokemon_icon_get(PokemonData* pdata, int num) {
     furi_assert(pdata);
     File* file;
     FuriString* path;
     uint32_t size;
     bool is_error = true;
+    struct pdata_priv* pdata_priv = pdata->priv;
 
-    if(pdata->bitmap_num != num) {
-        if(pdata->bitmap) {
-            free(pdata->bitmap);
-            pdata->bitmap = NULL;
+    if(pdata_priv->bitmap_num != num) {
+        if(pdata_priv->bitmap) {
+            free(pdata_priv->bitmap);
+            pdata_priv->bitmap = NULL;
         }
 
-        file = storage_file_alloc(pdata->storage);
-        path = furi_string_alloc_set(pdata->asset_path);
+        file = storage_file_alloc(pdata_priv->storage);
+        path = furi_string_alloc_set(pdata_priv->asset_path);
         furi_string_cat_printf(path, "all_sprites.fxbm");
 
         if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
             storage_file_seek(file, (num - 1) * FXBM_SPRITE_SIZE, true);
             if(storage_file_read(file, &size, sizeof(size)) == sizeof(size)) {
-                pdata->bitmap = malloc(size);
-                if(storage_file_read(file, pdata->bitmap, size) ==
+                pdata_priv->bitmap = malloc(size);
+                if(storage_file_read(file, pdata_priv->bitmap, size) ==
                    FXBM_SPRITE_SIZE - sizeof(size)) {
                     FURI_LOG_D(TAG, "Opened file \'%s\'", furi_string_get_cstr(path));
                     is_error = false;
                 } else {
-                    free(pdata->bitmap);
+                    free(pdata_priv->bitmap);
                 }
             }
         }
@@ -386,17 +413,98 @@ uint8_t* pokemon_icon_get(PokemonData* pdata, int num) {
         if(is_error) {
             FURI_LOG_E(
                 TAG, "Failed to open \'%s\' or access sprite data", furi_string_get_cstr(path));
-            pdata->bitmap = (struct fxbm_sprite*)((uint8_t*)(__000_fxbm) + sizeof(size));
+            pdata_priv->bitmap = (struct fxbm_sprite*)((uint8_t*)(__000_fxbm) + sizeof(size));
             num = 0;
         }
 
         storage_file_free(file);
         furi_string_free(path);
 
-        pdata->bitmap_num = num;
+        pdata_priv->bitmap_num = num;
     }
 
-    return (uint8_t*)pdata->bitmap;
+    return pdata_priv->bitmap;
+}
+
+uint16_t pokemon_stat_get_new(PokemonData* pdata, DataStat stat, DataStatSub which)
+{
+	furi_assert(pdata);
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+
+	switch (stat) {
+	case STAT_ATK:		return info->atk;
+	case STAT_DEF:		return info->def;
+	case STAT_SPD:		return info->spd;
+	case STAT_SPC:
+	case STAT_SPC_ATK:	return info->spc_atk;
+	case STAT_SPC_DEF:	return info->spc_def;
+	case STAT_HP:		return info->hp;
+	case STAT_ATK_EV:	return info->atk_ev;
+	case STAT_DEF_EV:	return info->def_ev;
+	case STAT_SPD_EV:	return info->spd_ev;
+	case STAT_SPC_EV:
+	case STAT_SPC_ATK_EV:
+	case STAT_SPC_DEF_EV:	return info->spc_ev;
+	case STAT_HP_EV:	return info->hp_ev;
+	/* XXX: STAT_IV is deprecated and each individual IV should
+	 * instead be accessed as needed.
+	 */
+	//case STAT_IV:
+	//	return info->iv;
+
+	/* The IVs in GB byte order, are always:
+	 * atk, def, spd, spc
+	 * Like every other 16 bit quantity that the Flipper acts on, we need to
+	 * byte swap them normally. However, the below accessors for individual
+	 * IV nibbles directly pull from the data structures which will always
+	 * be in GB endianness and directly return.
+	 */
+	case STAT_SPD_IV:	return info->spd_iv;
+	/* In order to line up all of the dynamic stat accessors used as part of the
+	 * stat calculation loop, we need to overload the SPC IV accessor to allow
+	 * accessing SPC, SPC_ATK, and SPC_DEF. Note that only SPC exists, the ATK
+	 * and DEF are the overloaded values. This is so when, for example, gen i
+	 * calculates its SPC value, or gen ii calculates is SPC_DEF value, it will
+	 * always grab the same IV nibble.
+	 */
+	case STAT_SPC_IV:
+	case STAT_SPC_ATK_IV:
+	case STAT_SPC_DEF_IV:	return info->spc_iv;
+	case STAT_ATK_IV:	return info->atk_iv;
+	case STAT_DEF_IV:	return info->def_iv;
+	case STAT_HP_IV:
+		/* NOTE:
+		 * HP IV is calculated as the LSB of each other IV, assembled in the
+		 * same bit order down to a single nibble.
+		 */
+		return ( ((info->atk_iv & 0x01) << 3) |
+			 ((info->def_iv & 0x01) << 2) |
+			 ((info->spd_iv & 0x01) << 1) |
+			 ((info->spc_iv & 0x01)));
+	case STAT_LEVEL:	return info->level;
+	/* STAT_NUM is the 0 indexed number of the pokemon. We store
+	 * STAT_NUM as index because aside from gen I, the index is
+	 * the same as the national dex number. This means translating
+	 * to and from gen II is just a copy. To and from gen I requires
+	 * looking up the index from the main pokemon table.
+	 */
+	/* STAT_INDEX is being done away with with this refactor. */
+	//case STAT_INDEX:
+	//	return info->index;
+	case STAT_INDEX:		return 0;
+	case STAT_NUM:		return (info->index - 1);
+	case STAT_MOVE:		return info->move[which];
+	case STAT_TYPE:		return info->type[which];
+	case STAT_OT_ID:	return info->ot_id;
+	case STAT_POKERUS:	return info->pokerus;
+	case STAT_SEL:		return info->stat_sel;
+	case STAT_CONDITION:	return 0;
+	case STAT_HELD_ITEM:	return info->catch_held;
+	default:
+		furi_crash("stat_get: invalid stat");
+		break;
+	}
 }
 
 uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which) {
@@ -405,6 +513,9 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which) 
     int gen = pdata->gen;
     uint16_t val = 0;
     uint8_t hp_iv = 0;
+
+    struct pdata_priv* priv = pdata->priv;
+    struct pokemon_info* info = priv->info;
 
     switch(stat) {
     case STAT_ATK:
@@ -540,8 +651,8 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which) 
         if(gen == GEN_II) return ((PokemonPartyGenII*)party)->pokerus;
         break;
     case STAT_SEL:
-        if(gen == GEN_I) return pdata->stat_sel;
-        if(gen == GEN_II) return pdata->stat_sel;
+        if(gen == GEN_I) return info->stat_sel;
+        if(gen == GEN_II) return info->stat_sel;
         break;
     case STAT_CONDITION:
         if(gen == GEN_I) return ((PokemonPartyGenI*)party)->status_condition = val;
@@ -555,15 +666,77 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which) 
         break;
     }
 
+    pokemon_stat_get_new(pdata, stat, which);
+
     return __builtin_bswap16(val);
+}
+
+void pokemon_stat_set_new(PokemonData* pdata, DataStat stat, DataStatSub which, uint32_t val)
+{
+	furi_assert(pdata);
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+
+	switch (stat) {
+	case STAT_ATK:		info->atk = val;		break;
+	case STAT_DEF:		info->def = val;		break;
+	case STAT_SPD:		info->spd = val;		break;
+	case STAT_SPC:		[[fallthrough]];
+	case STAT_SPC_ATK:	info->spc_atk = val;		break;
+	case STAT_SPC_DEF:	info->spc_def = val;		break;
+	case STAT_HP:		info->hp = val;			break;
+	case STAT_ATK_EV: 	info->atk_ev = val;		break;
+	case STAT_DEF_EV:	info->def_ev = val;		break;
+	case STAT_SPD_EV:	info->spd_ev = val;		break;
+	/* SPC ATK/DEF are not real values, they are all handled by the single
+	 * SPC EV, but match them anyway to allow for more flexible loop access.
+	 */
+	case STAT_SPC_EV:	[[fallthrough]];
+	case STAT_SPC_ATK_EV:	[[fallthrough]];
+	case STAT_SPC_DEF_EV:	info->spc_ev = val;		break;
+	case STAT_HP_EV:	info->hp_ev = val;		break;
+	//case STAT_IV:
+	// STAT IV should only be accessed as each individual IV
+	case STAT_SPD_IV:	info->spd_iv = val & 0xF;	break;
+	case STAT_SPC_IV:	[[fallthrough]];
+	case STAT_SPC_ATK_IV:	[[fallthrough]];
+	case STAT_SPC_DEF_IV:	info->spc_iv = val & 0xF;	break;
+	case STAT_ATK_IV:	info->atk_iv = val & 0xF;	break;
+	case STAT_DEF_IV:	info->def_iv = val & 0xF;	break;
+	case STAT_MOVE:		info->move[which] = val;	break;
+	case STAT_TYPE:		info->type[which] = val;	break;
+	case STAT_LEVEL:	info->level = val;		break;
+	/* STAT_NUM is the 0 indexed number of the pokemon. We store
+	 * STAT_NUM as index because aside from gen I, the index is
+	 * the same as the national dex number. This means translating
+	 * to and from gen II is just a copy. To and from gen I requires
+	 * looking up the index from the main pokemon table.
+	 */
+	/* STAT_INDEX is being done away with with this refactor. */
+	case STAT_INDEX:	break;
+	//case STAT_INDEX:	info->index = val;		break;
+	case STAT_NUM:		info->index = val + 1;		break;
+	case STAT_OT_ID:	info->ot_id = val;		break;
+	case STAT_POKERUS:	info->pokerus = val;		break;
+	case STAT_SEL:		info->stat_sel = val;		break;
+	case STAT_EXP:		info->exp = val;		break;
+	case STAT_HELD_ITEM:	info->catch_held = val;		break;
+	default:
+		furi_crash("STAT_SET: invalid stat");
+		break;
+	}
+
+	FURI_LOG_D(TAG, "[data] stat %s:%d set to 0x%lX", stat_text_get(stat), which, val);
+	pokemon_recalculate(pdata, stat);
 }
 
 void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint16_t val) {
     furi_assert(pdata);
     void* party = pdata->party;
     int gen = pdata->gen;
-    uint8_t recalc = 0;
     uint16_t val_swap = __builtin_bswap16(val);
+    struct pdata_priv* priv = pdata->priv;
+    struct pokemon_info* info = priv->info;
 
     switch(stat) {
     case STAT_ATK:
@@ -694,7 +867,6 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
             ((PokemonPartyGenI*)party)->level_again = val;
         }
         if(gen == GEN_II) ((PokemonPartyGenII*)party)->level = val;
-        recalc = (RECALC_STATS | RECALC_EXP | RECALC_EVS);
         break;
     /* In Gen I, index is not relative at all to dex num.
      * In Gen II, index is the same as the dex num.
@@ -708,7 +880,6 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
             ((PokemonPartyGenII*)party)->index = val + 1;
             ((TradeBlockGenII*)pdata->trade_block)->party_members[0] = val + 1;
         }
-        recalc = RECALC_ALL; // Always recalculate everything if we selected a different pokemon
         break;
     case STAT_NUM:
         if(gen == GEN_I)
@@ -727,8 +898,7 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
         if(gen == GEN_II) ((PokemonPartyGenII*)party)->pokerus = val;
         break;
     case STAT_SEL:
-        pdata->stat_sel = val;
-        recalc = (RECALC_EVS | RECALC_IVS | RECALC_STATS);
+        info->stat_sel = val;
         break;
     case STAT_EXP:
         if(gen == GEN_I) ((PokemonPartyGenI*)party)->exp[which] = val;
@@ -746,7 +916,44 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
         break;
     }
     FURI_LOG_D(TAG, "[data] stat %s:%d set to 0x%X", stat_text_get(stat), which, val);
-    pokemon_recalculate(pdata, recalc);
+    pokemon_recalculate(pdata, stat);
+
+    pokemon_stat_set_new(pdata, stat, which, val);
+}
+
+#define UINT32_TO_EXP(output_array, input)				\
+	do {								\
+		(output_array)[2] = (uint8_t)((input) & 0xFF);		\
+		(output_array)[1] = (uint8_t)(((input) >> 8) & 0xFF);	\
+		(output_array)[0] = (uint8_t)(((input) >> 16) & 0xFF);	\
+	} while(0)
+
+#define EXP_TO_UINT32(output, input_array)				\
+	do {								\
+		(output) = (uint32_t)((input_array)[2]) |		\
+			   (uint32_t)(((input_array)[1]) << 8) |	\
+			   (uint32_t)(((input_array)[0]) << 16);	\
+	} while(0)
+
+static void pokemon_exp_set_new(PokemonData* pdata, uint32_t exp)
+{
+	pokemon_stat_set_new(pdata, STAT_EXP, NONE, exp);
+}
+
+static void pokemon_exp_set(PokemonData* pdata, uint32_t exp) {
+    furi_assert(pdata);
+    uint8_t exp_tmp[3];
+    int i;
+
+    UINT32_TO_EXP(exp_tmp, exp);
+
+    for(i = EXP_0; i <= EXP_2; i++) {
+        pokemon_stat_set(pdata, STAT_EXP, i, exp_tmp[i]);
+    }
+
+    FURI_LOG_D(TAG, "[data] Set pkmn exp %d", (int)exp);
+
+    pokemon_exp_set_new(pdata, exp);
 }
 
 static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
@@ -767,7 +974,7 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
     case MAXIV_MAXEV:
         ev = 0xffff;
         break;
-    default:
+    default: // *_ZEROEV
         ev = 0;
         break;
     }
@@ -779,106 +986,29 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
 
 static void pokemon_stat_iv_calc(PokemonData* pdata, EvIv val) {
     furi_assert(pdata);
-    uint16_t iv;
+    DataStat stat;
 
     /* Set up IVs */
     switch(val) {
     case RANDIV_ZEROEV:
     case RANDIV_LEVELEV:
     case RANDIV_MAXEV:
-        iv = (uint16_t)rand();
+	    /* XXX: -1 is important */
+        for (stat = STAT_IV_OFFS; stat < STAT_IV_END-1; stat++)
+            pokemon_stat_set(pdata, stat, NONE, (uint8_t)rand());
         break;
-    default:
-        iv = 0xFFFF;
-        break;
-    }
-
-    pokemon_stat_set(pdata, STAT_IV, NONE, iv);
-}
-
-#define UINT32_TO_EXP(input, output_array)                     \
-    do {                                                       \
-        (output_array)[2] = (uint8_t)((input) & 0xFF);         \
-        (output_array)[1] = (uint8_t)(((input) >> 8) & 0xFF);  \
-        (output_array)[0] = (uint8_t)(((input) >> 16) & 0xFF); \
-    } while(0)
-
-void pokemon_exp_set(PokemonData* pdata, uint32_t exp) {
-    furi_assert(pdata);
-    uint8_t exp_tmp[3];
-    int i;
-
-    UINT32_TO_EXP(exp, exp_tmp);
-
-    for(i = EXP_0; i <= EXP_2; i++) {
-        pokemon_stat_set(pdata, STAT_EXP, i, exp_tmp[i]);
-    }
-
-    FURI_LOG_D(TAG, "[data] Set pkmn exp %d", (int)exp);
-}
-
-void pokemon_exp_calc(PokemonData* pdata) {
-    furi_assert(pdata);
-    int level;
-    uint32_t exp;
-    uint8_t growth = table_stat_base_get(
-        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), STAT_BASE_GROWTH, NONE);
-
-    level = (int)pokemon_stat_get(pdata, STAT_LEVEL, NONE);
-    /* Calculate exp */
-    switch(growth) {
-    case GROWTH_FAST:
-        // https://bulbapedia.bulbagarden.net/wiki/Experience#Fast
-        exp = (4 * level * level * level) / 5;
-        break;
-    case GROWTH_MEDIUM_FAST:
-        // https://bulbapedia.bulbagarden.net/wiki/Experience#Medium_Fast
-        exp = (level * level * level);
-        break;
-    case GROWTH_MEDIUM_SLOW:
-        // https://bulbapedia.bulbagarden.net/wiki/Experience#Medium_Slow
-        exp = (((level * level * level) * 6 / 5) - (15 * level * level) + (100 * level) - 140);
-        break;
-    case GROWTH_SLOW:
-        // https://bulbapedia.bulbagarden.net/wiki/Experience#Slow
-        exp = (5 * level * level * level) / 4;
-        break;
-    default:
-        furi_crash("incorrect growth val");
+    default: // MAXIV_*
+        for (stat = STAT_IV_OFFS; stat < STAT_IV_END-1; stat++)
+            pokemon_stat_set(pdata, stat, NONE, 0xFF);
         break;
     }
-
-    pokemon_exp_set(pdata, exp);
-}
-
-/* Calculates stat from current level */
-void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
-    furi_assert(pdata);
-    uint8_t iv;
-    uint16_t ev;
-    uint8_t base;
-    uint8_t level;
-    uint16_t calc;
-
-    level = pokemon_stat_get(pdata, STAT_LEVEL, NONE);
-    base = table_stat_base_get(
-        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), stat, NONE);
-    ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS, NONE);
-    iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS, NONE);
-
-    /* Gen I and II calculation */
-    // https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
-    calc = floor((((2 * (base + iv)) + floor(sqrt(ev) / 4)) * level) / 100);
-
-    if(stat == STAT_HP)
-        calc += (level + 10);
-    else
-        calc += 5;
-
-    pokemon_stat_set(pdata, stat, NONE, calc);
 }
 
 /* Copy the traded-in Pokemon's main data to our struct */
+/* XXX: This goes away eventually and is replaced with a functions to check out
+ * and check in a trade block
+ * The actual conversion handling might be better off somewhere else? but I'm not
+ * sure yet. Just trying to not pollute this file more than needed */
 void pokemon_stat_memcpy(PokemonData* dst, PokemonData* src, uint8_t which) {
     if(dst->gen == GEN_I) {
         ((TradeBlockGenI*)dst->trade_block)->party_members[0] =
@@ -911,4 +1041,490 @@ void pokemon_stat_memcpy(PokemonData* dst, PokemonData* src, uint8_t which) {
             &(((TradeBlockGenII*)src->trade_block)->ot_name[which]),
             sizeof(struct name));
     }
+}
+
+PokemonData* pokemon_data_alloc_new(uint8_t gen) {
+	UNUSED(gen);
+
+	PokemonData* pdata;
+	struct pdata_priv* pdata_priv = NULL;
+
+	pdata = malloc(sizeof(PokemonData));
+	pdata->priv = malloc(sizeof(struct pdata_priv));
+	pdata_priv = pdata->priv;
+	pdata->gen = gen;
+
+        /* Set the max pokedex number, 0 indexed */
+	/* XXX: This probably shouldn't be here? */
+	/* XXX: Need to figure out how to handle someone with a gen II pokemon
+	 * set up in the pdata struct going back in to gen I selection. Maybe
+	 * Create a popup of some kind that says the current pokemon does not
+	 * exist in the selected gen, do you want to keep this current pokemon
+	 * or reset to defaults?
+	 */
+	if (gen == GEN_I)
+		pdata->dex_max = 150;
+	else
+		pdata->dex_max = 250;
+
+	/* Set up lists */
+	pdata->move_list = move_nl_pointer_get();
+	pdata->type_list = type_nl_pointer_get();
+	pdata->stat_list = stat_nl_pointer_get();
+	pdata->item_list = item_nl_pointer_get();
+	pdata->pokemon_table = table_pointer_get();
+
+	/* Allocate the main info struct */
+	pdata_priv->info = malloc(sizeof(struct pokemon_info));
+
+	pdata_priv->storage = furi_record_open(RECORD_STORAGE);
+	pdata_priv->asset_path = furi_string_alloc_set(APP_ASSETS_PATH());
+	storage_common_resolve_path_and_ensure_app_directory(pdata_priv->storage, pdata_priv->asset_path);
+
+	/* Set up initial data */
+	/* Trainer/OT name, not to exceed 7 characters! */
+	pokemon_name_set_new(pdata, STAT_TRAINER_NAME, "Flipper");
+	pokemon_name_set_new(pdata, STAT_OT_NAME, "Flipper");
+
+	/* OT trainer ID# */
+	pokemon_stat_set_new(pdata, STAT_OT_ID, NONE, 42069);
+
+	/* Notes:
+	 * Move pp isn't explicitly set up, should be fine
+	 * Catch/held isn't explicitly set up, should be okay for only Gen I support now
+	 * Status condition isn't explicity let up, would you ever want to?
+	 */
+
+	/* Set up initial pokemon and level */
+	/* This causes all other stats to be recalculated */
+	pokemon_stat_set_new(pdata, STAT_NUM, NONE, 0); // First Pokemon
+	pokemon_stat_set_new(pdata, STAT_LEVEL, NONE, 2); // Minimum level of 2
+
+	return pdata;
+};
+
+/* Allocates a chunk of memory for the trade data block and sets up some
+ * default values.
+ */
+PokemonData* pokemon_data_alloc(uint8_t gen) {
+    PokemonData* pdata;
+    struct pdata_priv* pdata_priv = NULL;
+
+    pdata = malloc(sizeof(PokemonData));
+    pdata->priv = malloc(sizeof(struct pdata_priv));
+    pdata_priv = pdata->priv;
+    //pdata->pdata2 = pokemon_data_alloc_new(gen);
+    /* NOTE: This is normally allocated by alloc_new above, but for testing
+     * its done here to prevent recursion issues.
+     */
+    pdata_priv->info = malloc(sizeof(struct pokemon_info));
+    pdata->gen = gen;
+
+    /* Set up lists */
+    pdata->move_list = move_nl_pointer_get();
+    pdata->type_list = type_nl_pointer_get();
+    pdata->stat_list = stat_nl_pointer_get();
+    pdata->item_list = item_nl_pointer_get();
+    pdata->pokemon_table = table_pointer_get();
+
+    pdata_priv->storage = furi_record_open(RECORD_STORAGE);
+    pdata_priv->asset_path = furi_string_alloc_set(APP_ASSETS_PATH());
+    storage_common_resolve_path_and_ensure_app_directory(pdata_priv->storage, pdata_priv->asset_path);
+
+    /* NOTE WELL!
+     * All of the following should be relocated somewhere else under a function
+     * that will transfer our pokemon_info struct to the actual blob of data
+     * needed to transmit to the paired game boy.
+     */
+    switch(gen) {
+    case GEN_I:
+        /* Allocate trade block and set its size for the trade view to use */
+        pdata->trade_block_sz = sizeof(TradeBlockGenI);
+        pdata->party_sz = sizeof(PokemonPartyGenI) * 6;
+        pdata->trade_block = malloc(pdata->trade_block_sz);
+
+        /* The party_members element needs to be 0xff for unused */
+        memset(
+            ((TradeBlockGenI*)pdata->trade_block)->party_members,
+            0xFF,
+            sizeof(((TradeBlockGenI*)pdata->trade_block)->party_members));
+
+        pdata->party = ((TradeBlockGenI*)pdata->trade_block)->party;
+
+        /* Set party count to 1 */
+        ((TradeBlockGenI*)pdata->trade_block)->party_cnt = 1;
+
+        /* Set the max pokedex number, 0 indexed */
+        pdata->dex_max = 150;
+        break;
+    case GEN_II:
+        /* Allocate trade block and set its size for the trade view to use */
+        pdata->trade_block_sz = sizeof(TradeBlockGenII);
+        pdata->party_sz = sizeof(PokemonPartyGenII) * 6;
+        pdata->trade_block = malloc(pdata->trade_block_sz);
+
+        /* The party_members element needs to be 0xff for unused */
+        memset(
+            ((TradeBlockGenII*)pdata->trade_block)->party_members,
+            0xFF,
+            sizeof(((TradeBlockGenII*)pdata->trade_block)->party_members));
+
+        pdata->party = ((TradeBlockGenII*)pdata->trade_block)->party;
+
+        /* Set party count to 1 */
+        ((TradeBlockGenII*)pdata->trade_block)->party_cnt = 1;
+
+        /* Set the max pokedex number, 0 indexed */
+        pdata->dex_max = 250;
+        break;
+    default:
+        furi_crash("Invalid Gen");
+        break;
+    }
+
+    /* Trainer/OT name, not to exceed 7 characters! */
+    pokemon_name_set(pdata, STAT_TRAINER_NAME, "Flipper");
+    pokemon_name_set(pdata, STAT_OT_NAME, "Flipper");
+
+    /* OT trainer ID# */
+    pokemon_stat_set(pdata, STAT_OT_ID, NONE, 42069);
+
+    /* Notes:
+     * Move pp isn't explicitly set up, should be fine
+     * Catch/held isn't explicitly set up, should be okay for only Gen I support now
+     * Status condition isn't explicity let up, would you ever want to?
+     */
+
+    /* Set up initial pokemon and level */
+    /* This causes all other stats to be recalculated */
+    pokemon_stat_set(pdata, STAT_NUM, NONE, 0); // First Pokemon
+    pokemon_stat_set(pdata, STAT_LEVEL, NONE, 2); // Minimum level of 2
+
+    return pdata;
+}
+
+#define COPY(dst, src) do { dst = src; } while (0)
+#define MEMCPY(dst, src) do { memcpy(dst, src, sizeof(dst)); } while (0)
+#define SWAP16(dst, src) do { dst = __builtin_bswap16(src); } while (0)
+/* EXP is defined later as it needs to be to or from */
+
+/* status_condition and move_pp are left as 0, we don't care about them */
+/* XXX: How to handle IV after spc_ev? */
+#define GEN_I_FIELDS(X) \
+	X(hp, hp, SWAP16) \
+	X(level, level, COPY) \
+	X(type, type, MEMCPY) \
+	X(catch_held, catch_held, COPY) \
+	X(move, move, MEMCPY) \
+	X(move_pp, move_pp, MEMCPY) \
+	X(ot_id, ot_id, SWAP16) \
+	X(exp, exp, EXP) \
+	X(hp_ev, hp_ev, SWAP16) \
+	X(atk_ev, atk_ev, SWAP16) \
+	X(def_ev, def_ev, SWAP16) \
+	X(spd_ev, spd_ev, SWAP16) \
+	X(spc_ev, spc_ev, SWAP16) \
+	X(level_again, level, COPY) \
+	X(max_hp, max_hp, COPY) \
+	X(atk, atk, COPY) \
+	X(def, def, COPY) \
+	X(spd, spd, COPY) \
+	X(spc, spc_atk, COPY)
+
+/* status_condition and move_pp are left as 0, we don't care about them */
+/* Friendship, too. */
+/* caught data, too, how does that work? */
+/* XXX: How to handle IV after spc_ev? */
+/* XXX: trainer_id is unused? */
+#define GEN_II_FIELDS(X) \
+	X(index, index, COPY) \
+	X(held_item, catch_held, COPY) \
+	X(move, move, MEMCPY) \
+	X(move_pp, move_pp, MEMCPY) \
+	X(ot_id, ot_id, SWAP16) \
+	X(exp, exp, EXP) \
+	X(hp_ev, hp_ev, SWAP16) \
+	X(atk_ev, atk_ev, SWAP16) \
+	X(def_ev, def_ev, SWAP16) \
+	X(spd_ev, spd_ev, SWAP16) \
+	X(spc_ev, spc_ev, SWAP16) \
+	X(pokerus, pokerus, COPY) \
+	X(level, level, COPY) \
+	X(max_hp, max_hp, COPY) \
+	X(atk, atk, COPY) \
+	X(def, def, COPY) \
+	X(spd, spd, COPY) \
+	X(spc_atk, spc_atk, COPY) \
+	X(spc_def, spc_def, COPY) 
+
+TradeBlock* pokemon_data_trade_block_get(PokemonData* pdata, TradeBlock* tb)
+{
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+	TradeBlockGenI* tbgen1 = NULL;
+	TradeBlockGenII* tbgen2 = NULL;
+
+	/* This can be called without alloc being called previously, if tb is
+	 * NULL, then alloc and get from the info struct.
+	 */
+	/* If tb is not NULL, verify that the generation it was allocated
+	 * for matches the current generation pdata is configured for.
+	 */
+	if (tb == NULL)
+		tb = pokemon_data_trade_block_alloc(pdata);
+	else
+		furi_check(tb->gen == pdata->gen);
+
+	tbgen1 = tb->trade_block;
+	tbgen2 = tb->trade_block;
+
+	switch (pdata->gen) {
+	case GEN_I:
+		/* Set the first party member to be the index of our pokemon */
+		/* Gen I's dex ordering does not correlate with the actual ID
+		 * in-game, we have to look up the index from the table.
+		 */
+		tbgen1->party_members[0] = table_stat_base_get(pdata->pokemon_table,
+							       info->index-1,
+							       STAT_BASE_INDEX,
+							       NONE);
+		tbgen1->party->index = tbgen1->party_members[0];
+
+		/* Set the pokemon's OT name */
+		memset(tbgen1->ot_name[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen1->ot_name[0].str, info->ot_name, LEN_OT_NAME-1);
+
+		/* Set the pokemon's nickname */
+		memset(tbgen1->nickname[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen1->nickname[0].str, info->nickname, LEN_NICKNAME-1);
+
+		/* TODO: IV is complex and can't really be handled by the macro
+		 * unrolling at the moment.
+		 */
+		tbgen1->party->iv = ( ((info->spd_iv & 0xF) << 12) |
+				      ((info->spc_iv & 0xF) << 8 ) |
+				      ((info->atk_iv & 0xF) << 4 ) |
+				      ((info->def_iv & 0xF)));
+
+		/* Unroll our macro above to copy in remaining values
+		 * converstion(dst, src);
+		 */
+		#define EXP UINT32_TO_EXP
+		#define X(gen1, common, conversion) conversion(tbgen1->party->gen1, info->common);
+			GEN_I_FIELDS(X)
+		#undef X
+		#undef EXP
+
+		break;
+	case GEN_II:
+		/* Set the first party member to be the index of our pokemon */
+		tbgen2->party_members[0] = info->index;
+
+		/* Set the pokemon's OT name */
+		memset(tbgen2->ot_name[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen2->ot_name[0].str, info->ot_name, LEN_OT_NAME-1);
+
+		/* Set the pokemon's nickname */
+		memset(tbgen2->nickname[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen2->nickname[0].str, info->nickname, LEN_NICKNAME-1);
+
+		/* TODO: IV is complex and can't really be handled by the macro
+		 * unrolling at the moment.
+		 */
+		tbgen2->party->iv = ( ((info->spd_iv & 0xF) << 12) |
+				      ((info->spc_iv & 0xF) << 8 ) |
+				      ((info->atk_iv & 0xF) << 4 ) |
+				      ((info->def_iv & 0xF)));
+
+		/* Unroll our macro above to copy in remaining values
+		 * converstion(dst, src);
+		 */
+		#define EXP UINT32_TO_EXP
+		#define X(gen2, common, conversion) conversion(tbgen2->party->gen2, info->common);
+			GEN_II_FIELDS(X)
+		#undef X
+		#undef EXP
+
+		break;
+	default:
+		furi_crash("Invalid Gen");
+		break;
+	}
+
+	return tb;
+}
+
+TradeBlock* pokemon_data_trade_block_alloc(PokemonData* pdata)
+{
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+	TradeBlock* tb = malloc(sizeof(TradeBlock));
+	TradeBlockGenI* tbgen1 = NULL;
+	TradeBlockGenII* tbgen2 = NULL;
+
+	tb->gen = pdata->gen;
+
+	switch (pdata->gen) {
+	case GEN_I:
+		/* Allocate trade block and set its size for the trade view to use */
+		tb->trade_block_sz = sizeof(TradeBlockGenI);
+		tb->party_sz = (sizeof(PokemonPartyGenI) * 6);
+		tbgen1 = malloc(tb->trade_block_sz);
+		tbgen1->party_cnt = 1;
+
+		/* The party_members element needs to be 0xff for unused */
+		memset(tbgen1->party_members, 0xFF, sizeof(tbgen1->party_members));
+
+		/* Set the trainer's display name */
+		memset(tbgen1->trainer_name.str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen1->trainer_name.str, info->trainer_name, LEN_OT_NAME-1);
+
+		/* Set up the generic tb struct pointers */
+		tb->party = tbgen1->party;
+		tb->trade_block = tbgen1;
+		break;
+	case GEN_II:
+		/* Allocate trade block and set its size for the trade view to use */
+		tb->trade_block_sz = sizeof(TradeBlockGenII);
+		tb->party_sz = sizeof(PokemonPartyGenII) * 6;
+		tbgen2 = malloc(pdata->trade_block_sz);
+		tbgen2->party_cnt = 1;
+
+		/* The party_members element needs to be 0xff for unused */
+		memset(tbgen2->party_members, 0xFF, sizeof(tbgen2->party_members));
+
+		/* Set the trainer's display name */
+		memset(tbgen2->trainer_name.str, TERM_, LEN_NAME_BUF);
+		pokemon_str_to_encoded_array(tbgen2->trainer_name.str, info->trainer_name, LEN_OT_NAME-1);
+
+		/* Set up the generic tb struct pointers */
+		tb->party = tbgen2->party;
+		tb->trade_block = tbgen2;
+		break;
+	default:
+		furi_crash("Invalid Gen");
+		break;
+	}
+
+	/* Pre-populate the tradeblock with data */
+	pokemon_data_trade_block_get(pdata, tb);
+
+	return tb;
+}
+
+
+
+void pokemon_data_trade_block_free(TradeBlock* tb)
+{
+	free(tb->trade_block);
+	free(tb);
+}
+
+void pokemon_data_trade_block_set(PokemonData* pdata, TradeBlock* tb, uint8_t which)
+{
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+	TradeBlockGenI* tbgen1 = NULL;
+	TradeBlockGenII* tbgen2 = NULL;
+
+	switch (pdata->gen) {
+	case GEN_I:
+		tbgen1 = tb->trade_block;
+		/* Re-sync the info struct with incoming data.
+		 * NOTE WELL!
+		 * Not every varible in the info struct may be updated!
+		 */
+		
+		/* Set the pokemon's OT name */
+		memset(info->ot_name, '\0', LEN_NAME_BUF);
+		pokemon_encoded_array_to_str(info->ot_name, tbgen1->ot_name[which].str, LEN_OT_NAME-1);
+
+		/* Set the pokemon's nickname */
+		memset(info->nickname, '\0', LEN_NAME_BUF);
+		pokemon_encoded_array_to_str(info->nickname, tbgen1->nickname[which].str, LEN_NICKNAME-1);
+
+		/* TODO: get IVs back in to info struct */
+		/* TODO: IV is complex and can't really be handled by the macro
+		 * unrolling at the moment.
+		 */
+		info->spd_iv = (tbgen1->party[which].iv >> 12) & 0xF;
+		info->spc_iv = (tbgen1->party[which].iv >> 8) & 0xF;
+		info->atk_iv = (tbgen1->party[which].iv >> 4) & 0xF;
+		info->def_iv = (tbgen1->party[which].iv) & 0xF;
+
+		/* Unroll our macro above to copy in remaining values
+		 * converstion(dst, src);
+		 */
+		#define EXP EXP_TO_UINT32
+		#define X(gen1, common, conversion) conversion(info->common, tbgen1->party[which].gen1);
+			GEN_I_FIELDS(X)
+		#undef X
+		#undef EXP
+		break;
+	case GEN_II:
+		tbgen2 = tb->trade_block;
+		/* Re-sync the info struct with incoming data.
+		 * NOTE WELL!
+		 * Not every varible in the info struct may be updated!
+		 */
+		
+		/* Set the pokemon's OT name */
+		memset(info->ot_name, '\0', LEN_NAME_BUF);
+		pokemon_encoded_array_to_str(info->ot_name, tbgen2->ot_name[which].str, LEN_OT_NAME-1);
+
+		/* Set the pokemon's nickname */
+		memset(info->nickname, '\0', LEN_NAME_BUF);
+		pokemon_encoded_array_to_str(info->nickname, tbgen2->nickname[which].str, LEN_NICKNAME-1);
+
+		/* TODO: get IVs back in to info struct */
+		/* TODO: IV is complex and can't really be handled by the macro
+		 * unrolling at the moment.
+		 */
+		info->spd_iv = (tbgen2->party[which].iv >> 12) & 0xF;
+		info->spc_iv = (tbgen2->party[which].iv >> 8) & 0xF;
+		info->atk_iv = (tbgen2->party[which].iv >> 4) & 0xF;
+		info->def_iv = (tbgen2->party[which].iv) & 0xF;
+
+		/* Unroll our macro above to copy in remaining values
+		 * converstion(dst, src);
+		 */
+		#define EXP EXP_TO_UINT32
+		#define X(gen2, common, conversion) conversion(info->common, tbgen2->party[which].gen2);
+			GEN_II_FIELDS(X)
+		#undef X
+		#undef EXP
+		break;
+	}
+}
+
+void pokemon_data_free_new(PokemonData* pdata) {
+	struct pdata_priv* pdata_priv = NULL;
+
+	furi_assert(pdata);
+	pdata_priv = pdata->priv;
+
+	furi_record_close(RECORD_STORAGE);
+	if (pdata_priv->bitmap && pdata_priv->bitmap_num != 0) free(pdata_priv->bitmap);
+	furi_string_free(pdata_priv->asset_path);
+	free(pdata_priv->info);
+	free(pdata->priv);
+	free(pdata);
+	pdata = NULL;
+};
+
+void pokemon_data_free(PokemonData* pdata) {
+    struct pdata_priv* pdata_priv = NULL;
+
+    furi_assert(pdata);
+    pdata_priv = pdata->priv;
+
+    //pokemon_data_free_new((PokemonData*)pdata->pdata2);
+    furi_record_close(RECORD_STORAGE);
+    free(pdata->trade_block);
+    if(pdata_priv->bitmap && pdata_priv->bitmap_num != 0) free(pdata_priv->bitmap);
+    furi_string_free(pdata_priv->asset_path);
+    free(pdata_priv->info);
+    free(pdata->priv);
+    free(pdata);
+    pdata = NULL;
 }
