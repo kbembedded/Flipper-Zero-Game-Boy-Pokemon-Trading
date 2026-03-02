@@ -24,18 +24,19 @@ static void select_pokemon_render_callback(Canvas* canvas, void* model) {
     struct select_model* view_model = model;
     uint8_t curr_pokemon = view_model->curr_pokemon;
     char pokedex_num[5];
+    struct fxbm_sprite *sprite = NULL;
 
     snprintf(pokedex_num, sizeof(pokedex_num), "#%03d", curr_pokemon + 1);
 
     /* Update the bitmap in pdata if needed */
-    pokemon_icon_get(view_model->pdata, curr_pokemon + 1);
+    sprite = pokemon_icon_get(view_model->pdata, curr_pokemon + 1);
     canvas_draw_xbm(
         canvas,
         0,
         0,
-        view_model->pdata->bitmap->width,
-        view_model->pdata->bitmap->height,
-        view_model->pdata->bitmap->data);
+        sprite->width,
+        sprite->height,
+        sprite->data);
 
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str_aligned(

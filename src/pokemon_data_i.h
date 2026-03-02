@@ -1,6 +1,11 @@
 #ifndef __POKEMON_DATA_I_H__
 #define __POKEMON_DATA_I_H__
 
+typedef struct pokemon_party_data_gen_i PokemonPartyGenI;
+typedef struct trade_block_gen_i TradeBlockGenI;
+typedef struct pokemon_party_data_gen_ii PokemonPartyGenII;
+typedef struct trade_block_gen_ii TradeBlockGenII;
+
 /* Creat a uniform, generation independent struct to represent the current pokemon
  * in the Flipper's memory. These are then copied into a struct that is laid out
  * in memory for the target trade generation. Upon receiving a traded pokemon,
@@ -49,6 +54,7 @@ struct __attribute__((__packed__)) pokemon_info {
 	 */
 	uint8_t catch_held;
 	uint8_t move[4];
+	uint8_t move_pp[4];
 	uint16_t ot_id;
 	uint16_t hp_ev;
 	uint16_t atk_ev;
@@ -81,6 +87,9 @@ struct __attribute__((__packed__)) pokemon_info {
 	uint16_t spd;
 	uint16_t spc_atk;
 	uint16_t spc_def;
+
+	/* Current EV/IV stat selection */
+	EvIv stat_sel;
 };
 
 /* The struct is laid out exactly as the data trasfer that gets sent for trade
