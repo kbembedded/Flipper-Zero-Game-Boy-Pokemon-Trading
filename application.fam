@@ -12,7 +12,7 @@ App(
     fap_file_assets="files",
     fap_author="Kris Bahnsen, Esteban Fuentealba, ProteanReverie, Darryn Cull",
     fap_weburl="https://github.com/kbembedded/Flipper-Zero-Game-Boy-Pokemon-Trading",
-    fap_description="Pokemon exchange from Flipper Zero to Game Boy, supports Generation I & II non-Japanese games",
+    fap_description="Pokemon trade between Flipper Zero and Game Boy, supports Generation I & II non-Japanese games",
     fap_private_libs=[
         Lib(
             name="flipper-gblink",
