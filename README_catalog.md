@@ -1,16 +1,16 @@
-# GAME BOY Pokemon Trading MALVEKE
+# Game Boy Pokemon Trade Tool
 
 ## Introduction
 
-Tool for trading Pokemon from the Flipper Zero to Generation I and II Game Boy games (Red, Blue, Yellow, Gold, Silver, and Crystal). In addition to creating and trading Pokemon to a Game Boy game, the Flipper can be used to modify an existing Pokemon traded to the Flipper and trading it back to the Game Boy!
+Tool for trading Pokemon from the Flipper Zero to Generation I and II Game Boy games (Red, Blue, Yellow, Gold, Silver, and Crystal). In addition to creating and trading Pokemon to a Game Boy game, the Flipper can be used to modify an existing Pokemon traded to the Flipper and trade it back to the Game Boy!
 
 No longer causes the OK button to break when using the pinout for older MALVEKE (MLVK2.5) PCBs! Users of MALVEKE PCBs Rev. <= 2.5 no longer need to reset the Flipper after a trade and are able to modify the traded Pokemon!
 
-See the project's README on GitHub https://github.com/KBEmbedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md for more detailed instructions on the application and all of the customization options for Pokemon.
+See the project's [README on GitHub](https://github.com/KBEmbedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md) for more detailed instructions on the application and all of the customization options for Pokemon.
 
 ## Connection: Flipper Zero GPIO - Game Boy
 
-See the project's README on GitHub https://github.com/kbembedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md#hardware-interface for Link Cable interface adapters available on Tindie.
+See the project's [README on GitHub](https://github.com/kbembedded/Flipper-Zero-Game-Boy-Pokemon-Trading/blob/main/README.md#hardware-interface) for Link Cable interface adapters available on Tindie as well as instructions for creating an adapter.
 
 The Original pinout is as follows:
 
