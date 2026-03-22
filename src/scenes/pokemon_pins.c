@@ -57,42 +57,42 @@ static void select_pins_pin_callback(VariableItem* item) {
     gblink_pin_set(pokemon_fap->gblink_handle, pin, index);
 }
 
+/* XXX: This relies on mode being enum gblink_pinout */
 static void select_pins_rebuild_list(PokemonFap* pokemon_fap, int mode) {
     int pinnum;
-    int pinmax = gblink_pin_count_max() + 1;
+    int pinmax;
     VariableItem *item;
+    gblink_bus_pins pin;
     
     variable_item_list_reset(pokemon_fap->variable_item_list);
 
+    if (mode == PINOUT_CUSTOM)
+	    pinmax = gblink_pin_count_max() + 1;
+    else
+	    pinmax = 1;
+
     item = variable_item_list_add(
-        pokemon_fap->variable_item_list, "Mode", PINOUT_COUNT+1, select_pins_default_callback, pokemon_fap);
+        pokemon_fap->variable_item_list, "Mode", PINOUT_COUNT, select_pins_default_callback, pokemon_fap);
     variable_item_set_current_value_index(item, mode);
     variable_item_set_current_value_text(item, named_groups[mode]);
 
-    item = variable_item_list_add(
-        pokemon_fap->variable_item_list, "SI:", (mode < PINOUT_COUNT) ? 1 : pinmax, select_pins_pin_callback, pokemon_fap);
-    pinnum = gblink_pin_get(pokemon_fap->gblink_handle, PIN_SERIN);
-    variable_item_set_current_value_index(item, (mode < PINOUT_COUNT) ? 0 : pinnum);
-    variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
-
-    item = variable_item_list_add(
-        pokemon_fap->variable_item_list, "SO:", (mode < PINOUT_COUNT) ? 1 : pinmax, select_pins_pin_callback, pokemon_fap);
-    pinnum = gblink_pin_get(pokemon_fap->gblink_handle, PIN_SEROUT);
-    variable_item_set_current_value_index(item, (mode < PINOUT_COUNT) ? 0 : pinnum);
-    variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
-
-    item = variable_item_list_add(
-        pokemon_fap->variable_item_list, "CLK:", (mode < PINOUT_COUNT) ? 1 : pinmax, select_pins_pin_callback, pokemon_fap);
-    pinnum = gblink_pin_get(pokemon_fap->gblink_handle, PIN_CLK);
-    variable_item_set_current_value_index(item, (mode < PINOUT_COUNT) ? 0 : pinnum);
-    variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
+    for (pin = PIN_START; pin < PIN_COUNT; pin++) {
+        item = variable_item_list_add(pokemon_fap->variable_item_list,
+                                      gblink_gpio_pinnames[pin],
+                                      pinmax,
+                                      select_pins_pin_callback,
+                                      pokemon_fap);
+        pinnum = gblink_pin_get(pokemon_fap->gblink_handle, pin);
+        variable_item_set_current_value_index(item, (mode != PINOUT_CUSTOM) ? 0 : pinnum);
+        variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
+    }
 }
 
 void pokemon_scene_select_pins_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    int def_mode = gblink_pin_get_default(pokemon_fap->gblink_handle);
 
-    select_pins_rebuild_list(pokemon_fap, (def_mode < 0) ? PINOUT_COUNT : def_mode);
+    select_pins_rebuild_list(pokemon_fap,
+                             gblink_pin_get_default(pokemon_fap->gblink_handle));
 
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewVariableItem);
 }
