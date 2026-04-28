@@ -180,6 +180,12 @@ void pokemon_scene_gen_on_enter(void* context) {
     submenu_add_item(
         pokemon_fap->submenu, "Trade PKMN", PokemonSceneTrade, scene_change_from_main_cb, pokemon_fap);
 
+#ifdef DEBUG_DATA
+    submenu_add_item(
+        pokemon_fap->submenu, "Flip Data Structs", PokemonSceneDebugData, scene_change_from_main_cb, pokemon_fap);
+#endif
+
+
     if (trade_connected(pokemon_fap->trade)) {
         submenu_add_item(pokemon_fap->submenu,
                          "Reset Connection",
