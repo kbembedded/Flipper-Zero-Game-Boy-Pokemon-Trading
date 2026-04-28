@@ -1426,6 +1426,16 @@ void pokemon_data_trade_block_set(PokemonData* pdata, TradeBlock* tb, uint8_t wh
 	struct pokemon_info* info = priv->info;
 	TradeBlockGenI* tbgen1 = NULL;
 	TradeBlockGenII* tbgen2 = NULL;
+#ifdef DEBUG_DATA
+	struct pokemon_info* info_old = NULL;
+	void* trade_block_old = NULL;
+
+	info_old = malloc(sizeof(struct pokemon_info));
+	memcpy(info_old, priv->info, sizeof(struct pokemon_info));
+
+	trade_block_old = malloc(tb->trade_block_sz);
+	memcpy(trade_block_old, tb->trade_block, tb->trade_block_sz);
+#endif
 
 	switch (pdata->gen) {
 	case GEN_I:
@@ -1495,6 +1505,23 @@ void pokemon_data_trade_block_set(PokemonData* pdata, TradeBlock* tb, uint8_t wh
 		#undef EXP
 		break;
 	}
+
+#ifdef DEBUG_DATA
+	//furi_break(false);
+	/* Compare contents of new and old here */
+	FURI_LOG_D(TAG, "\t\tOld tradeblock\t\tNew tradeblock");
+	for (size_t i = 0; i < tb->trade_block_sz; i++)
+		FURI_LOG_D(TAG, "0x%04X:\t0x%02X\t\t0x%02X\t%d", i, ((uint8_t *)trade_block_old)[i], ((uint8_t *)tb->trade_block)[i],
+				((uint8_t *)trade_block_old)[i] == ((uint8_t *)tb->trade_block)[i] ? 1 : 0);
+
+	FURI_LOG_D(TAG, "\t\tOld info\t\tNew info");
+	for (size_t i = 0; i < sizeof(struct pokemon_info); i++)
+		FURI_LOG_D(TAG, "0x%04X:\t0x%02X\t\t0x%02X\t%d", i, ((uint8_t *)info_old)[i], ((uint8_t *)info)[i],
+				((uint8_t *)info_old)[i] == ((uint8_t *)info)[i] ? 1 : 0);
+
+	free(info_old);
+	free(trade_block_old);
+#endif
 }
 
 void pokemon_data_free_new(PokemonData* pdata) {
