@@ -57,18 +57,6 @@ struct pokemon_data {
     const NamedList* item_list; /* XXX: This can just use the call to list get */
     const PokemonTable* pokemon_table; /* XXX: This can just use the call to table get */
 
-    /* TODO: Once moved to the new tradeblock setup, this can be removed and
-     * instead the calls to trade_block_get/set will be used to get data in and
-     * out.
-     */
-    /* Pointer to the live trade_block */
-    void* trade_block; /* XXX: should be able to privatize this */
-    /* The length of the current trade_block. */
-    size_t trade_block_sz; /* XXX: Should be able to privatize this */
-    /* Shortcut pointer to the actual party data in the trade block */
-    void* party; /* XXX: Should be able to privatize this */
-    size_t party_sz; /* XXX: Should be able to privatize this */
-
     /* Current generation */
     uint8_t gen; /* XXX: Should be able to privatize this */
 
@@ -85,10 +73,11 @@ void pokemon_data_free(PokemonData* pdata);
 
 struct fxbm_sprite* pokemon_icon_get(PokemonData* pdata, int num);
 
-/* XXX: Convert this to a "give me a flat blob of data" */
-void pokemon_stat_memcpy(PokemonData* dst, PokemonData* src, uint8_t which);
 uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub num);
-void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint16_t val);
+void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint32_t val);
+/* XXX: make this go away. If name_set() name is NULL, then set the default
+ * nickname
+ */
 void pokemon_default_nickname_set(char* dest, PokemonData* pdata, size_t n);
 void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name);
 void pokemon_name_get(PokemonData* pdata, DataStat stat, char* dest, size_t len);
