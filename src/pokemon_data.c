@@ -289,8 +289,8 @@ void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name) {
         break;
     }
 
-    /* Clear the buffer with TERM character */
-    memset(ptr, TERM_, LEN_NAME_BUF);
+    /* Clear the buffer */
+    pokemon_encoded_array_clear(ptr, LEN_NAME_BUF);
 
     /* Set the encoded name in the buffer */
     pokemon_str_to_encoded_array(ptr, name, len);
@@ -1291,11 +1291,11 @@ TradeBlock* pokemon_data_trade_block_get(PokemonData* pdata, TradeBlock* tb)
 		tbgen1->party->index = tbgen1->party_members[0];
 
 		/* Set the pokemon's OT name */
-		memset(tbgen1->ot_name[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen1->ot_name[0].str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen1->ot_name[0].str, info->ot_name, LEN_OT_NAME-1);
 
 		/* Set the pokemon's nickname */
-		memset(tbgen1->nickname[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen1->nickname[0].str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen1->nickname[0].str, info->nickname, LEN_NICKNAME-1);
 
 		/* TODO: IV is complex and can't really be handled by the macro
@@ -1321,11 +1321,11 @@ TradeBlock* pokemon_data_trade_block_get(PokemonData* pdata, TradeBlock* tb)
 		tbgen2->party_members[0] = info->index;
 
 		/* Set the pokemon's OT name */
-		memset(tbgen2->ot_name[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen2->ot_name[0].str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen2->ot_name[0].str, info->ot_name, LEN_OT_NAME-1);
 
 		/* Set the pokemon's nickname */
-		memset(tbgen2->nickname[0].str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen2->nickname[0].str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen2->nickname[0].str, info->nickname, LEN_NICKNAME-1);
 
 		/* TODO: IV is complex and can't really be handled by the macro
@@ -1376,7 +1376,7 @@ TradeBlock* pokemon_data_trade_block_alloc(PokemonData* pdata)
 		memset(tbgen1->party_members, 0xFF, sizeof(tbgen1->party_members));
 
 		/* Set the trainer's display name */
-		memset(tbgen1->trainer_name.str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen1->trainer_name.str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen1->trainer_name.str, info->trainer_name, LEN_OT_NAME-1);
 
 		/* Set up the generic tb struct pointers */
@@ -1394,7 +1394,7 @@ TradeBlock* pokemon_data_trade_block_alloc(PokemonData* pdata)
 		memset(tbgen2->party_members, 0xFF, sizeof(tbgen2->party_members));
 
 		/* Set the trainer's display name */
-		memset(tbgen2->trainer_name.str, TERM_, LEN_NAME_BUF);
+		pokemon_encoded_array_clear(tbgen2->trainer_name.str, LEN_NAME_BUF);
 		pokemon_str_to_encoded_array(tbgen2->trainer_name.str, info->trainer_name, LEN_OT_NAME-1);
 
 		/* Set up the generic tb struct pointers */
