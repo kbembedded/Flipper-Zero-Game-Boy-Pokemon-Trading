@@ -50,9 +50,9 @@ uint8_t plist_index_get(struct patch_list* plist, int offset) {
     return plist->index;
 }
 
-void plist_create(struct patch_list** pplist, PokemonData* pdata) {
-    furi_assert(pdata);
-    uint8_t* trade_party_flat = pdata->party;
+void plist_create(struct patch_list** pplist, TradeBlock* tb) {
+    furi_assert(tb);
+    uint8_t* trade_party_flat = tb->party;
     size_t i;
 
     /* If plist is non-NULL that means its already been created. Tear it down
@@ -70,7 +70,7 @@ void plist_create(struct patch_list** pplist, PokemonData* pdata) {
      * offsets 0xfc - 0x107 (more in gen ii). Which is expressed as
      * 0x01 - 0xc. A 0xFF byte is added to signify the end of the second part.
      */
-    for(i = 0; i < pdata->party_sz; i++) {
+    for(i = 0; i < tb->party_sz; i++) {
         if(i == 0xFC) {
             FURI_LOG_D(TAG, "[plist] part 1 end");
             plist_append(*pplist, 0xFF);

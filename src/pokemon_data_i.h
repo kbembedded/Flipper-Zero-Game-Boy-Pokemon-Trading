@@ -20,6 +20,16 @@ typedef struct trade_block_gen_ii TradeBlockGenII;
 /* XXX: Need to include all of the variables that could ever be in any trade
  * struct, methinks...
  */
+typedef union {
+	struct {
+		uint16_t spc:4;
+		uint16_t spd:4;
+		uint16_t def:4;
+		uint16_t atk:4;
+	} iv;
+	uint16_t ivs;
+} iv_union;
+
 struct __attribute__((__packed__)) pokemon_info {
 	uint8_t index;
 	uint32_t exp;
@@ -61,20 +71,7 @@ struct __attribute__((__packed__)) pokemon_info {
 	uint16_t def_ev;
 	uint16_t spd_ev;
 	uint16_t spc_ev;
-	/* XXX: TODO: Is there a more clean way to handle this?
-	 * Could use union with struct+bitfields and a single var
-	 * Could copy
-	 * Could eliminate the use of single IV value gathering which would 
-	 *   complicate other code that grabs the IV value and does manipulation
-	 *   from that.
-	 *
-	 * Also note that these are currently for gen I and gen II, gen III and
-	 * onward use a different IV system
-	 */
-	uint8_t atk_iv;
-	uint8_t def_iv;
-	uint8_t spd_iv;
-	uint8_t spc_iv;
+	iv_union iv;
 	uint8_t pokerus;
 
 	/* Right now, these values are calculated from exp, et al., it may make sense
@@ -167,7 +164,7 @@ struct __attribute__((__packed__)) trade_block_gen_i {
 /* This is 48 bytes in memory */
 struct __attribute__((__packed__)) pokemon_party_data_gen_ii {
     uint8_t index;
-    uint8_t held_item;
+    uint8_t catch_held; // Named to match gen I use, its the held item
     uint8_t move[4];
     uint16_t ot_id;
     uint8_t exp[3];
