@@ -72,7 +72,6 @@ typedef enum {
 
     /* These won't ever really be needed in groups */
     STAT_LEVEL = 28,
-    STAT_INDEX,
     STAT_NUM,
     STAT_CONDITION,
     STAT_NICKNAME,
