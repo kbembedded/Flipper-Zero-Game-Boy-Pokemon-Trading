@@ -184,7 +184,7 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
     }
 
     /* Ordered in order of priority for calculating other stats */
-    if(recalc & RECALC_NICKNAME) pokemon_default_nickname_set(NULL, pdata, 0);
+    if(recalc & RECALC_NICKNAME) pokemon_name_set(pdata, STAT_NICKNAME, NULL);
 
     if(recalc & RECALC_MOVES) {
         for(i = MOVE_0; i <= MOVE_3; i++) {
@@ -240,9 +240,30 @@ void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name)
 	furi_assert(pdata);
 	struct pdata_priv* priv = pdata->priv;
 	struct pokemon_info* info = priv->info;
+	char name_buf[LEN_NAME_BUF];
+	unsigned int i;
+
+	/* If name is NULL, then we need to set the name to the default name
+	 * which is their species name, all caps.
+	 *
+	 * QUIRK! This is only ever expected to be called with STAT_NICKNAME,
+	 * rather that deal with a NULL deref, just set the default pokemon
+	 * nickname.
+	 */
+	if (name == NULL) {
+		strncpy(name_buf,
+			table_stat_name_get(pdata->pokemon_table,
+					    pokemon_stat_get(pdata, STAT_NUM, NONE)),
+			sizeof(name_buf));
+		/* Next, walk through and toupper() each character */
+		for (i = 0; i < sizeof(name_buf); i++)
+			name_buf[i] = toupper(name_buf[i]);
+		name = name_buf;
+	}
 
 	switch (stat) {
 	case STAT_NICKNAME:
+		/* XXX: Should these use strncpy? */
 		strlcpy(info->nickname, name, LEN_NAME_BUF);
 		break;
 	case STAT_OT_NAME:
@@ -281,31 +302,6 @@ void pokemon_name_get(PokemonData* pdata, DataStat stat, char* dest, size_t len)
 		furi_crash("name_get invalid");
 		break;
 	}
-}
-
-/* If dest is not NULL, a copy of the default name is written to it as well */
-void pokemon_default_nickname_set(char* dest, PokemonData* pdata, size_t n) {
-    furi_assert(pdata);
-    unsigned int i;
-    char buf[LEN_NAME_BUF];
-
-    /* First, get the default name */
-    strncpy(
-        buf,
-        table_stat_name_get(pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE)),
-        sizeof(buf));
-
-    /* Next, walk through and toupper() each character */
-    for(i = 0; i < sizeof(buf); i++) {
-        buf[i] = toupper(buf[i]);
-    }
-
-    pokemon_name_set(pdata, STAT_NICKNAME, buf);
-    FURI_LOG_D(TAG, "[data] Set default nickname");
-
-    if(dest != NULL) {
-        strncpy(dest, buf, n);
-    }
 }
 
 /* Each sprite 56x56 is 404 bytes long */
