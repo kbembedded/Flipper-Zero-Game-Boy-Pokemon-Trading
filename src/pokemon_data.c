@@ -519,20 +519,16 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
 
 static void pokemon_stat_iv_calc(PokemonData* pdata, EvIv val) {
     furi_assert(pdata);
-    DataStat stat;
 
     /* Set up IVs */
     switch(val) {
     case RANDIV_ZEROEV:
     case RANDIV_LEVELEV:
     case RANDIV_MAXEV:
-	    /* XXX: -1 is important */
-        for (stat = STAT_IV_OFFS; stat < STAT_IV_END-1; stat++)
-            pokemon_stat_set(pdata, stat, NONE, (uint8_t)rand());
+        pokemon_stat_set(pdata, STAT_IV, NONE, (uint16_t)rand());
         break;
     default: // MAXIV_*
-        for (stat = STAT_IV_OFFS; stat < STAT_IV_END-1; stat++)
-            pokemon_stat_set(pdata, stat, NONE, 0xFF);
+        pokemon_stat_set(pdata, STAT_IV, NONE, 0xFFFF);
         break;
     }
 }
