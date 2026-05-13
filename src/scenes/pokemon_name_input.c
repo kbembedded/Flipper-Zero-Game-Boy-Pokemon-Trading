@@ -32,7 +32,15 @@ static bool select_name_input_validator(const char* text, FuriString* error, voi
     if(text[0] == '\0' && state == PokemonSceneNickname) {
         /* Get the pokemon's name and populate our buffer with it */
         /* TODO: Nidoran M/F are still a problem with this. */
-        pokemon_default_nickname_set(name_buf, pokemon_fap->pdata, sizeof(name_buf));
+        strncpy(name_buf,
+                table_stat_name_get(pokemon_fap->pdata->pokemon_table,
+                pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE)),
+                sizeof(name_buf));
+
+	/* Next, walk through and toupper() each character */
+	for (i = 0; i < sizeof(name_buf); i++)
+		name_buf[i] = toupper(name_buf[i]);
+
         return true;
     }
 
