@@ -95,8 +95,10 @@ static void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
     uint16_t calc;
 
     level = pokemon_stat_get(pdata, STAT_LEVEL, NONE);
-    base = table_stat_base_get(
-        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), stat, NONE);
+    base = table_stat_base_get(pdata->pokemon_table,
+                               pokemon_stat_get(pdata, STAT_NUM, NONE),
+                               stat + STAT_BASE_OFFS, NONE);
+
     ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS, NONE);
     iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS, NONE);
 
@@ -226,7 +228,7 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
      * never be written anywhere. This is just wasted CPU time.
      */
     if(recalc & RECALC_STATS) {
-        for(i = STAT; i < STAT_END; i++) {
+        for(i = STAT_OFFS; i < STAT_END; i++) {
             pokemon_stat_calc(pdata, i);
         }
     }
@@ -512,7 +514,7 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
         break;
     }
 
-    for(i = STAT_EV; i < STAT_EV_END; i++) {
+    for(i = STAT_EV_OFFS; i < STAT_EV_END; i++) {
         pokemon_stat_set(pdata, i, NONE, ev);
     }
 }
