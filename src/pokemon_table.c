@@ -78,7 +78,8 @@ uint8_t
     case STAT_BASE_GENDER_RATIO:
         return table[num].gender_ratio;
     default:
-        furi_crash("BASE_GET: invalid stat");
+	FURI_LOG_E("pokemon", "invalid stat");
+	furi_crash();
         break;
     }
 

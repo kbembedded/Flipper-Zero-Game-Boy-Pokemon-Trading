@@ -44,6 +44,7 @@ static void select_pins_pin_callback(VariableItem* item) {
         pin = PIN_CLK;
         break;
     default:
+	FURI_LOG_E("pokemon", "invalid pin");
         furi_crash();
         break;
     }
