@@ -141,7 +141,8 @@ static void pokemon_exp_calc(PokemonData* pdata) {
         exp = (5 * level * level * level) / 4;
         break;
     default:
-        furi_crash("incorrect growth val");
+        FURI_LOG_E(TAG, "invalid growth");
+        furi_crash();
         break;
     }
 
@@ -275,7 +276,8 @@ void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name)
 		strlcpy(info->trainer_name, name, LEN_NAME_BUF);
 		break;
 	default:
-		furi_crash("name");
+        	FURI_LOG_E(TAG, "invalid name set");
+        	furi_crash();
 		break;
 	}
 	FURI_LOG_D(TAG, "[data] %s name set to %s", stat_text_get(stat), name);
@@ -301,7 +303,8 @@ void pokemon_name_get(PokemonData* pdata, DataStat stat, char* dest, size_t len)
 		strlcpy(dest, info->trainer_name, len);
 		break;
 	default:
-		furi_crash("name_get invalid");
+        	FURI_LOG_E(TAG, "invalid name get");
+        	furi_crash();
 		break;
 	}
 }
@@ -428,7 +431,7 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
 	case STAT_HELD_ITEM:	return info->catch_held;
 	default:
 		FURI_LOG_E(TAG, "stat_get: invalid stat %d", stat);
-		furi_crash("stat_get: invalid stat");
+		furi_crash();
 		break;
 	}
 }
@@ -483,7 +486,7 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
 	case STAT_HELD_ITEM:	info->catch_held = val;		break;
 	default:
 		FURI_LOG_E(TAG, "stat_set: invalid stat %d", stat);
-		furi_crash("STAT_SET: invalid stat");
+		furi_crash();
 		break;
 	}
 
@@ -724,7 +727,8 @@ TradeBlock* pokemon_data_trade_block_get(PokemonData* pdata, TradeBlock* tb)
 
 		break;
 	default:
-		furi_crash("Invalid Gen");
+		FURI_LOG_E(TAG, "invalid Gen");
+        	furi_crash();
 		break;
 	}
 
@@ -780,7 +784,8 @@ TradeBlock* pokemon_data_trade_block_alloc(PokemonData* pdata)
 		tb->trade_block = tbgen2;
 		break;
 	default:
-		furi_crash("Invalid Gen");
+		FURI_LOG_E(TAG, "invalid Gen");
+        	furi_crash();
 		break;
 	}
 

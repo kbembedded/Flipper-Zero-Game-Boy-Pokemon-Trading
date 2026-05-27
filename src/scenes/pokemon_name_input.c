@@ -71,7 +71,8 @@ static bool select_name_input_validator(const char* text, FuriString* error, voi
         unown_form_set(pokemon_fap->pdata, text[0]);
         break;
     default:
-        furi_crash("Invalid scene");
+	FURI_LOG_E("pokemon", "Invalid scene");
+        furi_crash();
         break;
     }
 
@@ -109,7 +110,8 @@ void pokemon_scene_select_name_on_enter(void* context) {
         stat = STAT_OT_NAME;
         break;
     default:
-        furi_crash("Name: invalid state");
+	FURI_LOG_E("pokemon", "Name: invalid state");
+        furi_crash();
         break;
     }
 

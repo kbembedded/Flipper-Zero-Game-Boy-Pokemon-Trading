@@ -85,7 +85,8 @@ void pokemon_scene_select_number_on_enter(void* context) {
         stat = STAT_OT_ID;
         break;
     default:
-        furi_crash("Num: invalid state");
+	FURI_LOG_E("pokemon", "Num: invalid state");
+        furi_crash();
         break;
     }
 
