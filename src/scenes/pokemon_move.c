@@ -19,7 +19,7 @@ static void select_move_selected_callback(void* context, uint32_t index) {
             pokemon_fap->pdata,
             STAT_MOVE,
             move,
-            table_stat_base_get(pokemon_fap->pdata->pokemon_table, num, STAT_MOVE, move));
+            table_stat_base_get(pokemon_fap->pdata->pokemon_table, num, STAT_BASE_MOVE, move));
     } else {
         pokemon_stat_set(pokemon_fap->pdata, STAT_MOVE, move, index);
     }
@@ -136,7 +136,7 @@ void pokemon_scene_select_move_index_on_enter(void* context) {
             table_stat_base_get(
                 pokemon_fap->pdata->pokemon_table,
                 pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE),
-                STAT_MOVE,
+                STAT_BASE_MOVE,
                 move_num)));
     submenu_add_item(
         pokemon_fap->submenu, buf, UINT32_MAX, select_move_selected_callback, pokemon_fap);
