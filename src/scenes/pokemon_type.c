@@ -40,10 +40,14 @@ static void select_type_callback(VariableItem* item) {
         namedlist_index_get(context->pokemon_fap->pdata->type_list, pos));
 }
 
+static const char* strings[] = {
+    "Type 1:",
+    "Type 2:",
+};
+
 void pokemon_scene_select_type_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    VariableItem* vitype[2];
-    char* strings[2] = {"Type 1:", "Type 2:"};
+    VariableItem* vitype;
     int type;
     int num_types = namedlist_cnt(pokemon_fap->pdata->type_list);
     int pos;
@@ -57,16 +61,16 @@ void pokemon_scene_select_type_on_enter(void* context) {
         type = pokemon_stat_get(pokemon_fap->pdata, STAT_TYPE, i);
         pos = namedlist_pos_get(pokemon_fap->pdata->type_list, type);
 
-        vitype[i] = variable_item_list_add(
+        vitype = variable_item_list_add(
             pokemon_fap->variable_item_list,
             strings[i],
             num_types,
             select_type_callback,
             &type_cb[i]);
 
-        variable_item_set_current_value_index(vitype[i], pos);
+        variable_item_set_current_value_index(vitype, pos);
         variable_item_set_current_value_text(
-            vitype[i], namedlist_name_get_pos(pokemon_fap->pdata->type_list, pos));
+            vitype, namedlist_name_get_pos(pokemon_fap->pdata->type_list, pos));
     }
 
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewVariableItem);
