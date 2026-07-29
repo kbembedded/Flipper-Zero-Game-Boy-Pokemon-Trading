@@ -194,29 +194,31 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
     if(recalc & RECALC_NICKNAME) pokemon_name_set(pdata, STAT_NICKNAME, NULL);
 
     if(recalc & RECALC_MOVES) {
-        for(i = MOVE_0; i <= MOVE_3; i++) {
+        for(i = STAT_MOVE; i < STAT_MOVE_END; i++) {
             pokemon_stat_set(
                 pdata,
-                STAT_MOVE+i,
+                i,
                 NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
                     pokemon_stat_get(pdata, STAT_NUM, NONE),
-                    STAT_BASE_MOVE+i,
+		    /* Hilariously hacky way to get the STAT_BASE_MOVE offset */
+		    (i - STAT_MOVE) + STAT_BASE_MOVE,
                     NONE));
         }
     }
 
     if(recalc & RECALC_TYPES) {
-        for(i = TYPE_0; i <= TYPE_1; i++) {
+        for(i = STAT_TYPE; i < STAT_TYPE_END; i++) {
             pokemon_stat_set(
                 pdata,
-                STAT_TYPE+i,
+                i,
                 NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
                     pokemon_stat_get(pdata, STAT_NUM, NONE),
-                    STAT_BASE_TYPE+i,
+		    /* Hilariously hacky way to get the STAT_BASE_TYPE offset */
+		    (i - STAT_TYPE) + STAT_BASE_TYPE,
                     NONE));
         }
     }
