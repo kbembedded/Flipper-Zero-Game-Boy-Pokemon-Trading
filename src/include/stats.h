@@ -13,6 +13,20 @@
 	X(SPC_DEF)	\
 	X(HP)
 
+#define STAT_FOUR(name)			\
+	STAT_##name,			\
+	STAT_##name##_0 = STAT_##name,	\
+	STAT_##name##_1,		\
+	STAT_##name##_2,		\
+	STAT_##name##_3,		\
+	STAT_##name##_END,
+
+#define STAT_TWO(name)			\
+	STAT_##name,			\
+	STAT_##name##_0 = STAT_##name,	\
+	STAT_##name##_1,		\
+	STAT_##name##_END,
+
 typedef enum {
 	/* Main stats */
 #define X(name) STAT_##name,
@@ -57,16 +71,16 @@ typedef enum {
 	 * that is not used in Gen I games. This normally isn't an issue, but
 	 * is a potential gotcha to be aware of.
 	 */
-	STAT_BASE_TYPE,
-	STAT_BASE_MOVE,
+	STAT_TWO(BASE_TYPE)
+	STAT_FOUR(BASE_MOVE)
 	STAT_BASE_GROWTH,
 	STAT_BASE_GENDER_RATIO,
 	STAT_BASE_INDEX,
 	STAT_BASE_END,
 
 	/* Additional live stats that arn't grouped with the above. */
-	STAT_TYPE,
-	STAT_MOVE,
+	STAT_TWO(TYPE)
+	STAT_FOUR(MOVE)
 	STAT_IV,
 	STAT_LEVEL,
 	STAT_NUM,

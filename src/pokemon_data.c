@@ -52,8 +52,12 @@ static char* stat_text_get(DataStat stat) {
     case STAT_SPC_ATK:      return "SPC_ATK";
     case STAT_SPC_DEF:      return "SPC_DEF";
     case STAT_HP:           return "HP";
-    case STAT_TYPE:         return "Type";
-    case STAT_MOVE:         return "Move";
+    case STAT_MOVE_0:       return "Move 1";
+    case STAT_MOVE_1:       return "Move 2";
+    case STAT_MOVE_2:       return "Move 3";
+    case STAT_MOVE_3:       return "Move 4";
+    case STAT_TYPE_0:       return "Type 0";
+    case STAT_TYPE_1:       return "Type 1";
     case STAT_ATK_EV:       return "ATK_EV";
     case STAT_DEF_EV:       return "DEF_EV";
     case STAT_SPD_EV:       return "SPD_EV";
@@ -193,13 +197,13 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
         for(i = MOVE_0; i <= MOVE_3; i++) {
             pokemon_stat_set(
                 pdata,
-                STAT_MOVE,
-                i,
+                STAT_MOVE+i,
+                NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
                     pokemon_stat_get(pdata, STAT_NUM, NONE),
-                    STAT_BASE_MOVE,
-                    i));
+                    STAT_BASE_MOVE+i,
+                    NONE));
         }
     }
 
@@ -207,13 +211,13 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
         for(i = TYPE_0; i <= TYPE_1; i++) {
             pokemon_stat_set(
                 pdata,
-                STAT_TYPE,
-                i,
+                STAT_TYPE+i,
+                NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
                     pokemon_stat_get(pdata, STAT_NUM, NONE),
-                    STAT_BASE_TYPE,
-                    i));
+                    STAT_BASE_TYPE+i,
+                    NONE));
         }
     }
 
@@ -365,6 +369,7 @@ struct fxbm_sprite* pokemon_icon_get(PokemonData* pdata, int num) {
 uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
 {
 	furi_assert(pdata);
+	UNUSED(which);
 	struct pdata_priv* priv = pdata->priv;
 	struct pokemon_info* info = priv->info;
 
@@ -422,8 +427,12 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
 	 * looking up the index from the main pokemon table.
 	 */
 	case STAT_NUM:		return (info->index - 1);
-	case STAT_MOVE:		return info->move[which];
-	case STAT_TYPE:		return info->type[which];
+	case STAT_MOVE_0:
+	case STAT_MOVE_1:
+	case STAT_MOVE_2:
+	case STAT_MOVE_3:	return info->move[stat-STAT_MOVE];
+	case STAT_TYPE_0:
+	case STAT_TYPE_1:	return info->type[stat-STAT_TYPE];
 	case STAT_OT_ID:	return info->ot_id;
 	case STAT_POKERUS:	return info->pokerus;
 	case STAT_SEL:		return info->stat_sel;
@@ -439,6 +448,7 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
 void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint32_t val)
 {
 	furi_assert(pdata);
+	UNUSED(which);
 	struct pdata_priv* priv = pdata->priv;
 	struct pokemon_info* info = priv->info;
 
@@ -477,8 +487,12 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
 	 * looking up the index from the main pokemon table.
 	 */
 	case STAT_NUM:		info->index = val + 1;		break;
-	case STAT_MOVE:		info->move[which] = val;	break;
-	case STAT_TYPE:		info->type[which] = val;	break;
+	case STAT_MOVE_0:
+	case STAT_MOVE_1:
+	case STAT_MOVE_2:
+	case STAT_MOVE_3:	info->move[stat-STAT_MOVE] = val;	break;
+	case STAT_TYPE_0:
+	case STAT_TYPE_1:	info->type[stat-STAT_TYPE] = val;	break;
 	case STAT_OT_ID:	info->ot_id = val;		break;
 	case STAT_POKERUS:	info->pokerus = val;		break;
 	case STAT_SEL:		info->stat_sel = val;		break;
@@ -490,7 +504,7 @@ void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint
 		break;
 	}
 
-	FURI_LOG_D(TAG, "[data] stat %s:%d set to 0x%lX", stat_text_get(stat), which, val);
+	FURI_LOG_D(TAG, "[data] stat %s set to 0x%lX", stat_text_get(stat), val);
 	pokemon_recalculate(pdata, stat);
 }
 

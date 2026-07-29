@@ -8,13 +8,13 @@
 #include <src/scenes/include/pokemon_scene.h>
 
 struct type_cb {
-    DataStatSub type;
+    DataStat type;
     PokemonFap* pokemon_fap;
 };
 
 static struct type_cb type_cb[] = {
-    {TYPE_0, NULL},
-    {TYPE_1, NULL},
+    {STAT_TYPE_0, NULL},
+    {STAT_TYPE_1, NULL},
     {},
 };
 
@@ -35,8 +35,8 @@ static void select_type_callback(VariableItem* item) {
         item, namedlist_name_get_pos(context->pokemon_fap->pdata->type_list, pos));
     pokemon_stat_set(
         context->pokemon_fap->pdata,
-        STAT_TYPE,
         context->type,
+        NONE,
         namedlist_index_get(context->pokemon_fap->pdata->type_list, pos));
 }
 
@@ -58,7 +58,7 @@ void pokemon_scene_select_type_on_enter(void* context) {
     /* NOTE: 2 is a magic number, but pretty obvious */
     for(i = 0; i < 2; i++) {
         type_cb[i].pokemon_fap = pokemon_fap;
-        type = pokemon_stat_get(pokemon_fap->pdata, STAT_TYPE, i);
+        type = pokemon_stat_get(pokemon_fap->pdata, STAT_TYPE+i, NONE);
         pos = namedlist_pos_get(pokemon_fap->pdata->type_list, type);
 
         vitype = variable_item_list_add(
