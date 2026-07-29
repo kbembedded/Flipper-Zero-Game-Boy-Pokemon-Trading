@@ -96,18 +96,6 @@ typedef enum {
 } DataStat;
 
 typedef enum {
-    MOVE_0 = 0,
-    MOVE_1,
-    MOVE_2,
-    MOVE_3,
-
-    TYPE_0 = 0,
-    TYPE_1,
-
-    EXP_0 = 0,
-    EXP_1,
-    EXP_2,
-
     NONE = 0, // Just a filler value
 } DataStatSub;
 

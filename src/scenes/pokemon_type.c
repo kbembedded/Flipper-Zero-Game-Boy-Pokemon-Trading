@@ -12,10 +12,9 @@ struct type_cb {
     PokemonFap* pokemon_fap;
 };
 
-static struct type_cb type_cb[] = {
+static struct type_cb type_cb[STAT_TYPE_END-STAT_TYPE] = {
     {STAT_TYPE_0, NULL},
     {STAT_TYPE_1, NULL},
-    {},
 };
 
 /* TODO: In the future I would like to be able to set the types and then
@@ -55,10 +54,9 @@ void pokemon_scene_select_type_on_enter(void* context) {
 
     variable_item_list_reset(pokemon_fap->variable_item_list);
 
-    /* NOTE: 2 is a magic number, but pretty obvious */
-    for(i = 0; i < 2; i++) {
+    for (i = 0; i < (STAT_TYPE_END - STAT_TYPE); i++) {
         type_cb[i].pokemon_fap = pokemon_fap;
-        type = pokemon_stat_get(pokemon_fap->pdata, STAT_TYPE+i, NONE);
+        type = pokemon_stat_get(pokemon_fap->pdata, type_cb[i].type, NONE);
         pos = namedlist_pos_get(pokemon_fap->pdata->type_list, type);
 
         vitype = variable_item_list_add(
