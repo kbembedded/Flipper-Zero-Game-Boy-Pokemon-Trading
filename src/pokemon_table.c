@@ -51,6 +51,7 @@ const char* table_stat_name_get(const PokemonTable* table, int num) {
 uint8_t
     table_stat_base_get(const PokemonTable* table, uint8_t num, DataStat stat, DataStatSub which) {
     furi_assert(table);
+    UNUSED(which);
 
     switch(stat) {
     case STAT_BASE_INDEX:
@@ -69,10 +70,14 @@ uint8_t
         return table[num].base_spc_def;
     case STAT_BASE_HP:
         return table[num].base_hp;
-    case STAT_BASE_TYPE:
-        return table[num].type[which];
-    case STAT_BASE_MOVE:
-        return table[num].move[which];
+    case STAT_BASE_TYPE_0:
+    case STAT_BASE_TYPE_1:
+        return table[num].type[stat-STAT_BASE_TYPE];
+    case STAT_BASE_MOVE_0:
+    case STAT_BASE_MOVE_1:
+    case STAT_BASE_MOVE_2:
+    case STAT_BASE_MOVE_3:
+        return table[num].move[stat-STAT_BASE_MOVE];
     case STAT_BASE_GROWTH:
         return table[num].growth;
     case STAT_BASE_GENDER_RATIO:
