@@ -95,8 +95,4 @@ typedef enum {
 	STAT_POKERUS,
 } DataStat;
 
-typedef enum {
-    NONE = 0, // Just a filler value
-} DataStatSub;
-
 #endif // STATS_H

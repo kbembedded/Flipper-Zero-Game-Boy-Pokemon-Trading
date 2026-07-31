@@ -73,8 +73,8 @@ void pokemon_data_free(PokemonData* pdata);
 
 struct fxbm_sprite* pokemon_icon_get(PokemonData* pdata, int num);
 
-uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub num);
-void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint32_t val);
+uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat);
+void pokemon_stat_set(PokemonData* pdata, DataStat stat, uint32_t val);
 /* XXX: make this go away. If name_set() name is NULL, then set the default
  * nickname
  */
