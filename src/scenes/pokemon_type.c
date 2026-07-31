@@ -35,7 +35,6 @@ static void select_type_callback(VariableItem* item) {
     pokemon_stat_set(
         context->pokemon_fap->pdata,
         context->type,
-        NONE,
         namedlist_index_get(context->pokemon_fap->pdata->type_list, pos));
 }
 
@@ -56,7 +55,7 @@ void pokemon_scene_select_type_on_enter(void* context) {
 
     for (i = 0; i < (STAT_TYPE_END - STAT_TYPE); i++) {
         type_cb[i].pokemon_fap = pokemon_fap;
-        type = pokemon_stat_get(pokemon_fap->pdata, type_cb[i].type, NONE);
+        type = pokemon_stat_get(pokemon_fap->pdata, type_cb[i].type);
         pos = namedlist_pos_get(pokemon_fap->pdata->type_list, type);
 
         vitype = variable_item_list_add(

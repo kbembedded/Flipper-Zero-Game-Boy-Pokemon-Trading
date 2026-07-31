@@ -59,7 +59,7 @@ static void select_pokerus_rebuild_list(PokemonFap* pokemon_fap) {
     uint8_t days;
     FuriString* daystring = NULL;
 
-    days = pokemon_stat_get(pokemon_fap->pdata, STAT_POKERUS, NONE);
+    days = pokemon_stat_get(pokemon_fap->pdata, STAT_POKERUS);
     strain = (days >> 4);
     days &= 0x0f;
 

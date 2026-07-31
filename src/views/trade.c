@@ -404,7 +404,7 @@ static void trade_draw_pkmn_avatar(Canvas* canvas, PokemonData* pdata) {
     struct fxbm_sprite* sprite = NULL;
 
     /* First, ensure the icon we want is already loaded in to pdata->bitmap */
-    sprite = pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM, NONE) + 1);
+    sprite = pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM) + 1);
     canvas_draw_xbm(
         canvas, 0, 0, sprite->width, sprite->height, sprite->data);
 
@@ -809,7 +809,7 @@ static uint8_t getTradeCentreResponse(struct trade_ctx* trade) {
 	    pokemon_data_trade_block_set(trade->pdata, trade->in_tb, in_pkmn_idx);
 	    pokemon_data_trade_block_get(trade->pdata, trade->block);
 
-            model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
+            model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM);
 
             /* Schedule a callback outside of ISR context to rebuild the patch
 	     * list with the new Pokemon that we just accepted.
@@ -881,7 +881,7 @@ void trade_enter_callback(void* context) {
         model->gameboy_status = GAMEBOY_READY;
     }
     trade->trade_centre_state = TRADE_RESET;
-    model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
+    model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM);
     model->ledon = false;
 
     view_commit_model(trade->view, true);
