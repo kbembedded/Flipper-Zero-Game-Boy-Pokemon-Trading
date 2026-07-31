@@ -75,7 +75,7 @@ static bool select_pokemon_input_callback(InputEvent* event, void* context) {
     switch(event->key) {
     /* Advance to next view with the selected pokemon */
     case InputKeyOk:
-        pokemon_stat_set(select->pdata, STAT_NUM, NONE, selected_pokemon);
+        pokemon_stat_set(select->pdata, STAT_NUM, selected_pokemon);
 	view_dispatcher_send_custom_event(select->view_dispatcher, PokemonSceneBack);
         consumed = true;
         break;
@@ -141,7 +141,7 @@ void select_pokemon_enter_callback(void* context) {
         select->view,
         struct select_model * model,
         {
-            model->curr_pokemon = pokemon_stat_get(select->pdata, STAT_NUM, NONE);
+            model->curr_pokemon = pokemon_stat_get(select->pdata, STAT_NUM);
             model->pokemon_table = select->pdata->pokemon_table;
             model->pdata = select->pdata;
         },

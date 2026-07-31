@@ -34,7 +34,7 @@ static bool select_name_input_validator(const char* text, FuriString* error, voi
         /* TODO: Nidoran M/F are still a problem with this. */
         strncpy(name_buf,
                 table_stat_name_get(pokemon_fap->pdata->pokemon_table,
-                pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE)),
+                pokemon_stat_get(pokemon_fap->pdata, STAT_NUM)),
                 sizeof(name_buf));
 
 	/* Next, walk through and toupper() each character */

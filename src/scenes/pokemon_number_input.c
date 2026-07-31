@@ -54,7 +54,7 @@ static bool select_number_input_validator(const char* text, FuriString* error, v
         furi_string_printf(error, error_str);
         rc = false;
     } else {
-        pokemon_stat_set(pokemon_fap->pdata, stat, NONE, number);
+        pokemon_stat_set(pokemon_fap->pdata, stat, number);
     }
 
     return rc;
@@ -90,7 +90,7 @@ void pokemon_scene_select_number_on_enter(void* context) {
         break;
     }
 
-    snprintf(number_buf, len, "%d", pokemon_stat_get(pokemon_fap->pdata, stat, NONE));
+    snprintf(number_buf, len, "%d", pokemon_stat_get(pokemon_fap->pdata, stat));
 
     text_input_reset(pokemon_fap->text_input);
     text_input_set_validator(pokemon_fap->text_input, select_number_input_validator, pokemon_fap);

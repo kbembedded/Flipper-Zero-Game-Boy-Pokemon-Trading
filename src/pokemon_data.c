@@ -98,13 +98,13 @@ static void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
     uint8_t level;
     uint16_t calc;
 
-    level = pokemon_stat_get(pdata, STAT_LEVEL, NONE);
+    level = pokemon_stat_get(pdata, STAT_LEVEL);
     base = table_stat_base_get(pdata->pokemon_table,
-                               pokemon_stat_get(pdata, STAT_NUM, NONE),
-                               stat + STAT_BASE_OFFS, NONE);
+                               pokemon_stat_get(pdata, STAT_NUM),
+                               stat + STAT_BASE_OFFS);
 
-    ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS, NONE);
-    iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS, NONE);
+    ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS);
+    iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS);
 
     /* Gen I and II calculation */
     // https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
@@ -115,7 +115,7 @@ static void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
     else
         calc += 5;
 
-    pokemon_stat_set(pdata, stat, NONE, calc);
+    pokemon_stat_set(pdata, stat, calc);
 }
 
 static void pokemon_exp_calc(PokemonData* pdata) {
@@ -123,9 +123,9 @@ static void pokemon_exp_calc(PokemonData* pdata) {
     int level;
     uint32_t exp;
     uint8_t growth = table_stat_base_get(
-        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM, NONE), STAT_BASE_GROWTH, NONE);
+        pdata->pokemon_table, pokemon_stat_get(pdata, STAT_NUM), STAT_BASE_GROWTH);
 
-    level = (int)pokemon_stat_get(pdata, STAT_LEVEL, NONE);
+    level = (int)pokemon_stat_get(pdata, STAT_LEVEL);
     /* Calculate exp */
     switch(growth) {
     case GROWTH_FAST:
@@ -150,7 +150,7 @@ static void pokemon_exp_calc(PokemonData* pdata) {
         break;
     }
 
-    pokemon_stat_set(pdata, STAT_EXP, NONE, exp);
+    pokemon_stat_set(pdata, STAT_EXP, exp);
 }
 
 /* Recalculate values and stats based on their dependencies.
@@ -198,13 +198,11 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
             pokemon_stat_set(
                 pdata,
                 i,
-                NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
-                    pokemon_stat_get(pdata, STAT_NUM, NONE),
+                    pokemon_stat_get(pdata, STAT_NUM),
 		    /* Hilariously hacky way to get the STAT_BASE_MOVE offset */
-		    (i - STAT_MOVE) + STAT_BASE_MOVE,
-                    NONE));
+		    (i - STAT_MOVE) + STAT_BASE_MOVE));
         }
     }
 
@@ -213,13 +211,11 @@ static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
             pokemon_stat_set(
                 pdata,
                 i,
-                NONE,
                 table_stat_base_get(
                     pdata->pokemon_table,
-                    pokemon_stat_get(pdata, STAT_NUM, NONE),
+                    pokemon_stat_get(pdata, STAT_NUM),
 		    /* Hilariously hacky way to get the STAT_BASE_TYPE offset */
-		    (i - STAT_TYPE) + STAT_BASE_TYPE,
-                    NONE));
+		    (i - STAT_TYPE) + STAT_BASE_TYPE));
         }
     }
 
@@ -262,7 +258,7 @@ void pokemon_name_set(PokemonData* pdata, DataStat stat, char* name)
 	if (name == NULL) {
 		strncpy(name_buf,
 			table_stat_name_get(pdata->pokemon_table,
-					    pokemon_stat_get(pdata, STAT_NUM, NONE)),
+					    pokemon_stat_get(pdata, STAT_NUM)),
 			sizeof(name_buf));
 		/* Next, walk through and toupper() each character */
 		for (i = 0; i < sizeof(name_buf); i++)
@@ -368,10 +364,9 @@ struct fxbm_sprite* pokemon_icon_get(PokemonData* pdata, int num) {
     return pdata_priv->bitmap;
 }
 
-uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
+uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat)
 {
 	furi_assert(pdata);
-	UNUSED(which);
 	struct pdata_priv* priv = pdata->priv;
 	struct pokemon_info* info = priv->info;
 
@@ -447,10 +442,9 @@ uint16_t pokemon_stat_get(PokemonData* pdata, DataStat stat, DataStatSub which)
 	}
 }
 
-void pokemon_stat_set(PokemonData* pdata, DataStat stat, DataStatSub which, uint32_t val)
+void pokemon_stat_set(PokemonData* pdata, DataStat stat, uint32_t val)
 {
 	furi_assert(pdata);
-	UNUSED(which);
 	struct pdata_priv* priv = pdata->priv;
 	struct pokemon_info* info = priv->info;
 
@@ -516,7 +510,7 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
     uint16_t ev;
     DataStat i;
 
-    level = pokemon_stat_get(pdata, STAT_LEVEL, NONE);
+    level = pokemon_stat_get(pdata, STAT_LEVEL);
 
     /* Generate STATEXP */
     switch(val) {
@@ -534,7 +528,7 @@ static void pokemon_stat_ev_calc(PokemonData* pdata, EvIv val) {
     }
 
     for(i = STAT_EV_OFFS; i < STAT_EV_END; i++) {
-        pokemon_stat_set(pdata, i, NONE, ev);
+        pokemon_stat_set(pdata, i, ev);
     }
 }
 
@@ -546,10 +540,10 @@ static void pokemon_stat_iv_calc(PokemonData* pdata, EvIv val) {
     case RANDIV_ZEROEV:
     case RANDIV_LEVELEV:
     case RANDIV_MAXEV:
-        pokemon_stat_set(pdata, STAT_IV, NONE, (uint16_t)rand());
+        pokemon_stat_set(pdata, STAT_IV, (uint16_t)rand());
         break;
     default: // MAXIV_*
-        pokemon_stat_set(pdata, STAT_IV, NONE, 0xFFFF);
+        pokemon_stat_set(pdata, STAT_IV, 0xFFFF);
         break;
     }
 }
@@ -598,7 +592,7 @@ PokemonData* pokemon_data_alloc(uint8_t gen) {
 	pokemon_name_set(pdata, STAT_OT_NAME, "Flipper");
 
 	/* OT trainer ID# */
-	pokemon_stat_set(pdata, STAT_OT_ID, NONE, 42069);
+	pokemon_stat_set(pdata, STAT_OT_ID, 42069);
 
 	/* Notes:
 	 * Move pp isn't explicitly set up, should be fine
@@ -608,8 +602,8 @@ PokemonData* pokemon_data_alloc(uint8_t gen) {
 
 	/* Set up initial pokemon and level */
 	/* This causes all other stats to be recalculated */
-	pokemon_stat_set(pdata, STAT_NUM, NONE, 0); // First Pokemon
-	pokemon_stat_set(pdata, STAT_LEVEL, NONE, 2); // Minimum level of 2
+	pokemon_stat_set(pdata, STAT_NUM, 0); // First Pokemon
+	pokemon_stat_set(pdata, STAT_LEVEL, 2); // Minimum level of 2
 
 	return pdata;
 };
@@ -698,8 +692,7 @@ TradeBlock* pokemon_data_trade_block_get(PokemonData* pdata, TradeBlock* tb)
 		 */
 		tbgen1->party_members[0] = table_stat_base_get(pdata->pokemon_table,
 							       info->index-1,
-							       STAT_BASE_INDEX,
-							       NONE);
+							       STAT_BASE_INDEX);
 		tbgen1->party[0].index = tbgen1->party_members[0];
 
 		/* Set the pokemon's OT name */

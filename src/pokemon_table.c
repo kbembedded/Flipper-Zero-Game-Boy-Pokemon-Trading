@@ -49,9 +49,8 @@ const char* table_stat_name_get(const PokemonTable* table, int num) {
 }
 
 uint8_t
-    table_stat_base_get(const PokemonTable* table, uint8_t num, DataStat stat, DataStatSub which) {
+    table_stat_base_get(const PokemonTable* table, uint8_t num, DataStat stat) {
     furi_assert(table);
-    UNUSED(which);
 
     switch(stat) {
     case STAT_BASE_INDEX:

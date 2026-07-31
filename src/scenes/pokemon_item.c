@@ -12,14 +12,14 @@
 static void select_item_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
 
-    pokemon_stat_set(pokemon_fap->pdata, STAT_HELD_ITEM, NONE, index);
+    pokemon_stat_set(pokemon_fap->pdata, STAT_HELD_ITEM, index);
 
     FURI_LOG_D(
         TAG,
         "[item] Set item %s",
         namedlist_name_get_index(
             pokemon_fap->pdata->item_list,
-            pokemon_stat_get(pokemon_fap->pdata, STAT_HELD_ITEM, NONE)));
+            pokemon_stat_get(pokemon_fap->pdata, STAT_HELD_ITEM)));
 
     /* Move back to Gen menu. This assumes this submenu is only ever used in Gen II */
     view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, (PokemonSceneSearch | PokemonSceneGenIITrade));
