@@ -7,7 +7,65 @@
 #include <src/include/pokemon_app.h>
 #include <src/include/pokemon_data.h>
 
+#include <src/include/stats.h>
+
 #include <src/scenes/include/pokemon_scene.h>
+
+#define MSTATE_MASK	GENMASK_U32(31, 30)
+#define MSTATE_IDX	FIELD_PREP(MSTATE_MASK, 0)
+#define MSTATE_ABC	FIELD_PREP(MSTATE_MASK, 1)
+#define MSTATE_LIST	FIELD_PREP(MSTATE_MASK, 2)
+
+#define MOVE_NUM_MASK	GENMASK_U32(29, 28)
+
+static void select_move_build_scene(void* context)
+{
+    PokemonFap* pokemon_fap = (PokemonFap*)context;
+    MoveState state = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove);
+    int i;
+    char buf[32]; // TODO: This length should be plenty
+
+    submenu_reset(pokemon_fap->submenu);
+
+    switch (FIELD_GET(MSTATE_MASK, state)) {
+    case MSTATE_IDX:
+        for(i = STAT_MOVE; i < STAT_MOVE_END; i++) {
+            /* XXX: TODO: use strlcpy? */
+            snprintf(
+                buf,
+                sizeof(buf),
+                "Move %d:         %s",
+		/* XXX: NOTE: TODO: We need to keep MOVE_NUM still later! */
+                ((MSTATE_ABC) | FIELD_PREP(MOVE_NUM_MASK, (i + 1))),
+                namedlist_name_get_index(
+                    pokemon_fap->pdata->move_list,
+                    pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE+i)));
+            submenu_add_item(pokemon_fap->submenu, buf, i, select_move_number_callback, pokemon_fap);
+        }
+
+        /* TODO: Add a "Default all moves" item? */
+
+	/* Set the selected item to be the move that was last selected */
+        submenu_set_selected_item(
+            pokemon_fap->submenu,
+            FIELD_GET(MOVE_NUM_MASK, scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove)));
+#if 0
+	Unsure if this is still needed.
+        /* Clear cursor position on MoveIndex */
+        scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex, 0);
+#endif
+
+        break;
+
+    case MSTATE_ABC:
+    case MSTATE_LIST:
+    default:
+        FURI_LOG_E("move", "build scene get state");
+        furi_delay(10);
+        furi_crash();
+        break;
+    }
+}
 
 static void select_move_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
@@ -46,6 +104,9 @@ static void select_move_number_callback(void* context, uint32_t index) {
 
     /* Move to move index scene, save which move number we're selecting,
      * This doubles as the move slot we're going to write to later.
+     * NOTE: For now, saving this scene state as is should be fine. It will have
+     * the bits set correctly from the previous scene build. But at some point we're
+     * going to have to do a read modify write.
      */
     scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMove, index);
     view_dispatcher_send_custom_event(pokemon_fap->view_dispatcher, PokemonSceneMoveIndex);
@@ -54,31 +115,9 @@ static void select_move_number_callback(void* context, uint32_t index) {
 void pokemon_scene_select_move_on_enter(void* context) {
     furi_assert(context);
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    char buf[64];
-    int i;
 
-    submenu_reset(pokemon_fap->submenu);
-
-    for(i = 0; i < 4; i++) {
-        snprintf(
-            buf,
-            sizeof(buf),
-            "Move %d:         %s",
-            i + 1,
-            namedlist_name_get_index(
-                pokemon_fap->pdata->move_list,
-                pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE+i)));
-        submenu_add_item(pokemon_fap->submenu, buf, i, select_move_number_callback, pokemon_fap);
-    }
-
-    /* TODO: Add a "Default all moves" item? */
-
-    submenu_set_selected_item(
-        pokemon_fap->submenu,
-        scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove));
-
-    /* Clear cursor position on MoveIndex */
-    scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneMoveIndex, 0);
+    /* TODO: XXX: This may actually just want to send a custom event? */
+    select_move_build_scene(context);
 
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewSubmenu);
 }
@@ -89,11 +128,14 @@ bool pokemon_scene_select_move_on_event(void* context, SceneManagerEvent event) 
     bool consumed = false;
 
     if (event.type == SceneManagerEventTypeCustom) {
+        /* XXX: TODO: Need to check state here, if we're on the main move index,
+         * otherwise, go back one state and re-render the display */
         if (event.event & PokemonSceneBack)
             scene_manager_previous_scene(pokemon_fap->scene_manager);
         else if (event.event & PokemonSceneSearch)
             scene_manager_search_and_switch_to_previous_scene(pokemon_fap->scene_manager, (event.event & ~PokemonSceneSearch));
         else
+	    /* XXX: TODO: Need to set next scene state here, rather than moving to a different scene */
             scene_manager_next_scene(pokemon_fap->scene_manager, event.event);
 
         consumed = true;
