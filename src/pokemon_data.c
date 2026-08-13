@@ -90,32 +90,35 @@ static char* stat_text_get(DataStat stat) {
 
 
 /* Calculates stat from current level */
-static void pokemon_stat_calc(PokemonData* pdata, DataStat stat) {
-    furi_assert(pdata);
-    uint8_t iv;
-    uint16_t ev;
-    uint8_t base;
-    uint8_t level;
-    uint16_t calc;
+static void pokemon_stat_calc(PokemonData* pdata)
+{
+	furi_assert(pdata);
+	uint8_t iv;
+	uint16_t ev;
+	uint8_t base;
+	uint16_t calc;
+	uint8_t level = pokemon_stat_get(pdata, STAT_LEVEL);
+	uint8_t num = pokemon_stat_get(pdata, STAT_NUM);
+	DataStat stat;
 
-    level = pokemon_stat_get(pdata, STAT_LEVEL);
-    base = table_stat_base_get(pdata->pokemon_table,
-                               pokemon_stat_get(pdata, STAT_NUM),
-                               stat + STAT_BASE_OFFS);
+	for (stat = STAT_OFFS; stat < STAT_END; stat++) {
+		base = table_stat_base_get(pdata->pokemon_table, num,
+					   stat + STAT_BASE_OFFS);
 
-    ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS);
-    iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS);
+		ev = pokemon_stat_get(pdata, stat + STAT_EV_OFFS);
+		iv = pokemon_stat_get(pdata, stat + STAT_IV_OFFS);
 
-    /* Gen I and II calculation */
-    // https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
-    calc = floor((((2 * (base + iv)) + floor(sqrt(ev) / 4)) * level) / 100);
+		/* Gen I and II calculation */
+		// https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
+		calc = floor((((2 * (base + iv)) + floor(sqrt(ev) / 4)) * level) / 100);
 
-    if(stat == STAT_HP)
-        calc += (level + 10);
-    else
-        calc += 5;
+		if (stat == STAT_HP)
+			calc += (level + 10);
+		else
+			calc += 5;
 
-    pokemon_stat_set(pdata, stat, calc);
+		pokemon_stat_set(pdata, stat, calc);
+	}
 }
 
 static void pokemon_exp_calc(PokemonData* pdata) {
@@ -166,75 +169,70 @@ static void pokemon_exp_calc(PokemonData* pdata) {
  * nickname:	depends on:	index
  * atk/def/etc:	depends on:	level, iv, ev, index
  */
-static void pokemon_recalculate(PokemonData* pdata, DataStat stat) {
-    furi_assert(pdata);
-    struct pdata_priv* priv = pdata->priv;
-    struct pokemon_info* info = priv->info;
-    uint8_t recalc;
-    int i;
+static void pokemon_recalculate(PokemonData* pdata, DataStat stat)
+{
+	furi_assert(pdata);
+	struct pdata_priv* priv = pdata->priv;
+	struct pokemon_info* info = priv->info;
+	uint8_t recalc;
+	int i;
+	uint8_t num, tmp;
 
-    /* From the stat that was just updated, create a bitfield of stats that
-     * need to be recalculated from it.
-     */
-    switch (stat) {
-    case STAT_LEVEL:
-        recalc = (RECALC_STATS | RECALC_EXP | RECALC_EVS);
-	break;
-    case STAT_NUM:
-        recalc = RECALC_ALL;
-	break;
-    case STAT_SEL:
-        recalc = (RECALC_EVS | RECALC_IVS | RECALC_STATS);
-	break;
-    default:
-        return;
-    }
+	/* From the stat that was just updated, create a bitfield of stats that
+	* need to be recalculated from it.
+	*/
+	switch (stat) {
+	case STAT_LEVEL:
+		recalc = (RECALC_STATS | RECALC_EXP | RECALC_EVS);
+		break;
+	case STAT_NUM:
+		recalc = RECALC_ALL;
+		break;
+	case STAT_SEL:
+		recalc = (RECALC_EVS | RECALC_IVS | RECALC_STATS);
+		break;
+	default:
+		return;
+	}
 
-    /* Ordered in order of priority for calculating other stats */
-    if(recalc & RECALC_NICKNAME) pokemon_name_set(pdata, STAT_NICKNAME, NULL);
+	num = pokemon_stat_get(pdata, STAT_NUM);
 
-    if(recalc & RECALC_MOVES) {
-        for(i = STAT_MOVE; i < STAT_MOVE_END; i++) {
-            pokemon_stat_set(
-                pdata,
-                i,
-                table_stat_base_get(
-                    pdata->pokemon_table,
-                    pokemon_stat_get(pdata, STAT_NUM),
-		    /* Hilariously hacky way to get the STAT_BASE_MOVE offset */
-		    (i - STAT_MOVE) + STAT_BASE_MOVE));
-        }
-    }
+	/* Ordered in order of priority for calculating other stats */
+	if (recalc & RECALC_NICKNAME)
+		pokemon_name_set(pdata, STAT_NICKNAME, NULL);
 
-    if(recalc & RECALC_TYPES) {
-        for(i = STAT_TYPE; i < STAT_TYPE_END; i++) {
-            pokemon_stat_set(
-                pdata,
-                i,
-                table_stat_base_get(
-                    pdata->pokemon_table,
-                    pokemon_stat_get(pdata, STAT_NUM),
-		    /* Hilariously hacky way to get the STAT_BASE_TYPE offset */
-		    (i - STAT_TYPE) + STAT_BASE_TYPE));
-        }
-    }
+	if (recalc & RECALC_MOVES) {
+		for (i = STAT_MOVE; i <= STAT_MOVE_END; i++) {
+			tmp = table_stat_base_get(pdata->pokemon_table, num,
+						  (i - STAT_MOVE) + STAT_BASE_MOVE);
+			pokemon_stat_set(pdata, i, tmp);
+		}
+	}
 
-    if(recalc & RECALC_EXP) pokemon_exp_calc(pdata);
+	if (recalc & RECALC_TYPES) {
+		for (i = STAT_TYPE; i <= STAT_TYPE_END; i++) {
+			tmp = table_stat_base_get(pdata->pokemon_table, num,
+						  (i - STAT_TYPE) + STAT_BASE_TYPE);
+			pokemon_stat_set(pdata, i, tmp);
+		}
+	}
 
-    if(recalc & RECALC_EVS) pokemon_stat_ev_calc(pdata, info->stat_sel);
+	if (recalc & RECALC_EXP)
+		pokemon_exp_calc(pdata);
 
-    /* This just rerolls the IVs, nothing really to calculate */
-    if(recalc & RECALC_IVS) pokemon_stat_iv_calc(pdata, info->stat_sel);
+	if (recalc & RECALC_EVS)
+		pokemon_stat_ev_calc(pdata, info->stat_sel);
 
-    /* Note: This will still end up calculating spc_def on gen i pokemon.
-     * However, the way the accessors are set up the calculated value will
-     * never be written anywhere. This is just wasted CPU time.
-     */
-    if(recalc & RECALC_STATS) {
-        for(i = STAT_OFFS; i < STAT_END; i++) {
-            pokemon_stat_calc(pdata, i);
-        }
-    }
+	/* This just rerolls the IVs, nothing really to calculate */
+	if (recalc & RECALC_IVS)
+		pokemon_stat_iv_calc(pdata, info->stat_sel);
+
+	/* Note: This will still end up calculating spc_def on gen i pokemon.
+	* However, the way the accessors are set up the calculated value will
+	* never be written anywhere. This is just wasted CPU time.
+	*/
+	if (recalc & RECALC_STATS)
+		pokemon_stat_calc(pdata);
 }
 
 /* This DOES NOT encode/decode characters, that needs to happen when sending
