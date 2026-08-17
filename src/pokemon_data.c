@@ -13,6 +13,7 @@
 #include <src/include/stat_nl.h>
 #include <src/include/type_nl.h>
 #include <src/include/move_nl.h>
+#include <src/include/tinymath.h>
 
 #include <src/missingno_i.h>
 #include <src/pokemon_data_i.h>
@@ -110,7 +111,7 @@ static void pokemon_stat_calc(PokemonData* pdata)
 
 		/* Gen I and II calculation */
 		// https://bulbapedia.bulbagarden.net/wiki/Stat#Generations_I_and_II
-		calc = floor((((2 * (base + iv)) + floor(sqrt(ev) / 4)) * level) / 100);
+		calc = (((2 * (base + iv)) + (tiny_sqrt(ev) / 4)) * level) / 100;
 
 		if (stat == STAT_HP)
 			calc += (level + 10);
