@@ -1,8 +1,12 @@
 #include <stdint.h>
 
 /* This is quite a brute force operation, starting from 1, square, and compare
- * to val. Once it exceeds val, that means we've found ceil(sqrt(val)). This
- * is actually the same method that pokemon Gen I & II use to calculate sqrt().
+ * to val. Once it equals or exceeds val, that means we've found ceil(sqrt(val)).
+ * This is actually the same method that pokemon Gen I & II use to calculate
+ * sqrt() at runtime.
+ *
+ * Yes, there is a performance hit, but with how rarely everything is calculated
+ * it is negligable.
  */
 uint32_t tiny_sqrt(uint32_t val)
 {
