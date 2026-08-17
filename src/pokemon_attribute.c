@@ -13,17 +13,14 @@ static const char* gender_str[] = {
 /* This returns a string pointer if the gender is static, NULL if it is not and
  * the gender needs to be calculated.
  */
-const char* pokemon_gender_is_static(PokemonData* pdata, uint8_t ratio) {
+const char* pokemon_gender_is_static(uint8_t ratio) {
     switch(ratio) {
-    case 0xFF:
+    case GENDER_UNKNOWN:
         return gender_str[0];
-    case 0xFE:
+    case GENDER_F100:
         return gender_str[1];
-    case 0x00:
-        if(pokemon_stat_get(pdata, STAT_NUM, NONE) != 0xEB) { // Tyrogue can be either gender
-            return gender_str[2];
-        }
-        break;
+    case GENDER_F0:
+        return gender_str[2];
     default:
         break;
     }
@@ -34,19 +31,18 @@ const char* pokemon_gender_is_static(PokemonData* pdata, uint8_t ratio) {
 const char* pokemon_gender_get(PokemonData* pdata) {
     uint8_t ratio = table_stat_base_get(
         pdata->pokemon_table,
-        pokemon_stat_get(pdata, STAT_NUM, NONE),
-        STAT_BASE_GENDER_RATIO,
-        NONE);
+        pokemon_stat_get(pdata, STAT_NUM),
+        STAT_BASE_GENDER_RATIO);
     uint8_t atk_iv;
     const char* rc;
 
-    rc = pokemon_gender_is_static(pdata, ratio);
+    rc = pokemon_gender_is_static(ratio);
     if(rc) return rc;
 
     /* Falling through here means now we need to calculate the gender from
      * its ratio and ATK_IV.
      */
-    atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV, NONE);
+    atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV);
     if(atk_iv * 17 <= ratio)
         return gender_str[1];
     else
@@ -57,10 +53,9 @@ void pokemon_gender_set(PokemonData* pdata, Gender gender) {
 
     uint8_t ratio = table_stat_base_get(
         pdata->pokemon_table,
-        pokemon_stat_get(pdata, STAT_NUM, NONE),
-        STAT_BASE_GENDER_RATIO,
-        NONE);
-    uint8_t atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV, NONE);
+        pokemon_stat_get(pdata, STAT_NUM),
+        STAT_BASE_GENDER_RATIO);
+    uint8_t atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV);
 
     /* If we need to make the pokemon a male, increase atk IV until it exceeds
      * the gender ratio.
@@ -85,7 +80,7 @@ void pokemon_gender_set(PokemonData* pdata, Gender gender) {
         while((atk_iv * 17) > ratio) atk_iv--;
     }
 
-    pokemon_stat_set(pdata, STAT_ATK_IV, NONE, atk_iv);
+    pokemon_stat_set(pdata, STAT_ATK_IV, atk_iv);
 }
 
 static const char* pokerus_states[] = {
@@ -98,7 +93,7 @@ static const char* pokerus_states[] = {
 const char* pokerus_get_status_str(PokemonData* pdata) {
     uint8_t pokerus;
 
-    pokerus = pokemon_stat_get(pdata, STAT_POKERUS, NONE);
+    pokerus = pokemon_stat_get(pdata, STAT_POKERUS);
 
     if(pokerus == 0x00)
         return pokerus_states[0];
@@ -113,14 +108,14 @@ void pokerus_set_strain(PokemonData* pdata, uint8_t strain) {
     uint8_t pokerus;
 
     /* Need to read/modify/write the existing stat */
-    pokerus = pokemon_stat_get(pdata, STAT_POKERUS, NONE);
+    pokerus = pokemon_stat_get(pdata, STAT_POKERUS);
     pokerus &= 0x0f;
     pokerus |= (strain << 4);
 
     if((pokerus & 0xf0) == 0x00)
         pokerus = 0;
 
-    pokemon_stat_set(pdata, STAT_POKERUS, NONE, pokerus);
+    pokemon_stat_set(pdata, STAT_POKERUS, pokerus);
 }
 
 void pokerus_set_days(PokemonData *pdata, uint8_t days) {
@@ -129,10 +124,10 @@ void pokerus_set_days(PokemonData *pdata, uint8_t days) {
     days &= 0x0f;
 
     /* Need to read/modify/write the existing stat */
-    pokerus = pokemon_stat_get(pdata, STAT_POKERUS, NONE);
+    pokerus = pokemon_stat_get(pdata, STAT_POKERUS);
     pokerus &= 0xf0;
     pokerus |= days;
-    pokemon_stat_set(pdata, STAT_POKERUS, NONE, pokerus);
+    pokemon_stat_set(pdata, STAT_POKERUS, pokerus);
 }
 
 /* This just assumes gen ii for now */
@@ -141,10 +136,10 @@ void pokerus_set_days(PokemonData *pdata, uint8_t days) {
  * Atk must be 2, 3, 6, 7, 10, 11, 14, or 15
  */
 bool pokemon_is_shiny(PokemonData* pdata) {
-    uint8_t atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV, NONE);
-    uint8_t def_iv = pokemon_stat_get(pdata, STAT_DEF_IV, NONE);
-    uint8_t spd_iv = pokemon_stat_get(pdata, STAT_SPD_IV, NONE);
-    uint8_t spc_iv = pokemon_stat_get(pdata, STAT_SPC_IV, NONE);
+    uint8_t atk_iv = pokemon_stat_get(pdata, STAT_ATK_IV);
+    uint8_t def_iv = pokemon_stat_get(pdata, STAT_DEF_IV);
+    uint8_t spd_iv = pokemon_stat_get(pdata, STAT_SPD_IV);
+    uint8_t spc_iv = pokemon_stat_get(pdata, STAT_SPC_IV);
     bool rc = 1;
 
     if(spd_iv != 10) rc = 0;
@@ -173,16 +168,16 @@ void pokemon_set_shiny(PokemonData* pdata, bool shiny) {
     if(!shiny) {
         do {
             /* First, reset the IV to the selected stat */
-            pokemon_stat_set(pdata, STAT_SEL, NONE, pokemon_stat_get(pdata, STAT_SEL, NONE));
+            pokemon_stat_set(pdata, STAT_SEL, pokemon_stat_get(pdata, STAT_SEL));
 
 	    /* XXX: This may not be right? */
             /* Next, ensure the current IVs wouldn't make the pokemon shiny */
         } while(pokemon_is_shiny(pdata));
     } else {
         /* Set Def, Spd, Spc to 10 */
-        pokemon_stat_set(pdata, STAT_DEF_IV, NONE, 10);
-        pokemon_stat_set(pdata, STAT_SPD_IV, NONE, 10);
-        pokemon_stat_set(pdata, STAT_SPC_IV, NONE, 10);
+        pokemon_stat_set(pdata, STAT_DEF_IV, 10);
+        pokemon_stat_set(pdata, STAT_SPD_IV, 10);
+        pokemon_stat_set(pdata, STAT_SPC_IV, 10);
 
         /* Increase ATK IV until we hit a shiny number. Note that, this only
          * affects IVs that are randomly generated, max IV will already be set
@@ -190,7 +185,7 @@ void pokemon_set_shiny(PokemonData* pdata, bool shiny) {
          */
         while(!pokemon_is_shiny(pdata)) {
             pokemon_stat_set(
-                pdata, STAT_ATK_IV, NONE, pokemon_stat_get(pdata, STAT_ATK_IV, NONE) + 1);
+                pdata, STAT_ATK_IV, pokemon_stat_get(pdata, STAT_ATK_IV) + 1);
         }
     }
 }
@@ -207,7 +202,7 @@ void pokemon_set_shiny(PokemonData* pdata, bool shiny) {
  */
 static uint8_t unown_ivs_get(PokemonData* pdata) {
     furi_assert(pdata);
-    uint16_t ivs = pokemon_stat_get(pdata, STAT_IV, NONE);
+    uint16_t ivs = pokemon_stat_get(pdata, STAT_IV);
     uint8_t ivs_mid;
 
     ivs_mid =
@@ -219,7 +214,7 @@ static uint8_t unown_ivs_get(PokemonData* pdata) {
 
 static void unown_ivs_set(PokemonData* pdata, uint8_t ivs_mid) {
     furi_assert(pdata);
-    uint16_t ivs = pokemon_stat_get(pdata, STAT_IV, NONE);
+    uint16_t ivs = pokemon_stat_get(pdata, STAT_IV);
 
     /* Clear the middle bits of each nibble */
     ivs &= ~(0x6666);
@@ -228,7 +223,7 @@ static void unown_ivs_set(PokemonData* pdata, uint8_t ivs_mid) {
     ivs |=
         (((ivs_mid & 0xC0) << 7) | ((ivs_mid & 0x30) << 5) | ((ivs_mid & 0x0C) << 3) |
          ((ivs_mid & 0x03) << 1));
-    pokemon_stat_set(pdata, STAT_IV, NONE, ivs);
+    pokemon_stat_set(pdata, STAT_IV, ivs);
 }
 
 char unown_form_get(PokemonData* pdata) {

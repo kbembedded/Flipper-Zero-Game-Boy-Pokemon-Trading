@@ -24,12 +24,11 @@ typedef enum {
  * the gender ratio, the gender is female.
  *
  * A ratio of 0xff means gender is unknown.
- * A ratio of 0x00 is annoyingly special. It either means that pokemon can be
- *   male only -OR- there is a very small chance the pokemon is female. The
- *   male only pokemon need to be specifically checked for.
+ * A ratio of 0xfe means gender is always female.
+ * A ratio of 0x00 means gender is always male.
  */
 
-const char* pokemon_gender_is_static(PokemonData* pdata, uint8_t ratio);
+const char* pokemon_gender_is_static(uint8_t ratio);
 
 /* This will return a pointer to a string of the pokemon's current gender */
 const char* pokemon_gender_get(PokemonData* pdata);

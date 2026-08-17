@@ -3,7 +3,7 @@
 
 #pragma once
 
-extern const NamedList stat_list[];
+const NamedList* stat_nl_pointer_get(void);
 
 typedef enum {
     RANDIV_ZEROEV,
