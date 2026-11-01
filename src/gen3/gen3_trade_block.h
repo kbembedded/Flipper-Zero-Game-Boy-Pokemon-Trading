@@ -5,7 +5,7 @@
 #include <src/gen3/gen3_pkm.h>
 
 /* Part B of docs/gen3/link-protocol-trade.md: the 20-byte trade-menu blocks (§B3), the five
- * party-exchange rounds (§B2) and the rules for what the Flipper may offer or take (§B2.5, D8).
+ * party-exchange rounds (§B2) and the rules for what the Flipper may offer or take (§B2.5).
  * Pure C, no heap. */
 
 #define GEN3_TRADE_BLOCK_SIZE 20 /* §B3.1 */

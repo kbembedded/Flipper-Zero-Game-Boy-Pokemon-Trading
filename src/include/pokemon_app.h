@@ -66,7 +66,7 @@ struct pokemon_fap {
     void* gen3_trade_view;
     /* The sync between the editor and the link (struct Gen3TradeSync from
      * src/gen3/gen3_trade_sync.h): allocated by the first Gen III -> Trade, then kept until the
-     * app exits, so the block on a traded-away Pokemon outlives the session (O2).
+     * app exits, so the block on a traded-away Pokemon outlives the session.
      */
     struct Gen3TradeSync* gen3_trade_sync;
     /* The next trade session unlocks the GBA's National Dex (per run, never saved) */
@@ -99,7 +99,7 @@ typedef enum {
 
 /* Gen III trade app tick (every 100 ms, app thread, between UI events): while the trade screen
  * exists, starts the trade session once the cable reads OK, moves the received Pokemon, the GBA
- * player and the offer between the editor and the link (D6: only while the current scene can't
+ * player and the offer between the editor and the link (only while the current scene can't
  * change the Pokemon, which is Gen3Trade, Gen3Menu, and the dialogs over them that don't edit:
  * Gen3TradeEnd, Gen3NatDex and Gen3LinkExit), stops the session once the GBA has left and gone,
  * and refreshes the trade screen. Does nothing otherwise. Defined in pokemon_gen3_trade.c. */

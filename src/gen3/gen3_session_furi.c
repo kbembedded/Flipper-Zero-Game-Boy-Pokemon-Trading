@@ -22,7 +22,7 @@
 #define GEN3_LOG_DRAIN_MS     100
 #define GEN3_LOG_FLAG_STOP    (1u << 0)
 
-/* The club's identity in each mode (D7: the Flipper stays FLIPPER / 22222 / SID 0 in both). */
+/* The club's identity in each mode (the Flipper stays FLIPPER / 22222 / SID 0 in both). */
 static const Gen3ClubConfig gen3_session_test_cfg = {
     .name = GEN3_TEST_TRAINER_NAME,
     .tid = GEN3_TEST_TRAINER_TID,

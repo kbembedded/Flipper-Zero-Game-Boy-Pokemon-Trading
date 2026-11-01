@@ -66,7 +66,7 @@ TEST(test_trade_sit_relinks_menu) {
     ASSERT_EQ(b.sent_cafe16, 1);
     ASSERT_TRUE(!st.gba_seated); /* a new room session's seats */
     ASSERT_TRUE(!st.flipper_seated);
-    /* D2: the Flipper's 0x1122 LinkPlayerBlock starts after the GBA's is complete */
+    /* The Flipper's 0x1122 LinkPlayerBlock starts after the GBA's is complete */
     int fk = latest_block(b.f_blocks, b.n_f_blocks, GEN3_LINK_PLAYER_BLOCK_SIZE);
     int gk = latest_block(b.g_blocks, b.n_g_blocks, GEN3_LINK_PLAYER_BLOCK_SIZE);
     ASSERT_TRUE(fk >= 0 && gk >= 0);
@@ -151,7 +151,7 @@ TEST(test_trade_stand_up) {
 }
 
 TEST(test_trade_late_sit) {
-    /* R5: the GBA sits while the Flipper has no offer; the Flipper sits once it has one. */
+    /* The GBA sits while the Flipper has no offer; the Flipper sits once it has one. */
     Bench b;
     uint8_t mon[GEN3_PARTY_SIZE];
     bench_init_trade(&b);
@@ -371,7 +371,7 @@ TEST(test_trade_missing_block_stalls_fake) {
 }
 
 TEST(test_trade_exchange_with_backlog) {
-    /* Review Focus 4: the GBA's main loop stalls 4 frames (a map load, a flash write) as each
+    /* The GBA's main loop stalls 4 frames (a map load, a flash write) as each
      * round starts, so its receive queue backs up; the margins absorb it. */
     Bench b;
     uint8_t offer[GEN3_PARTY_SIZE];
@@ -399,7 +399,7 @@ TEST(test_trade_exchange_with_backlog) {
 }
 
 TEST(test_trade_exchange_empty_offer) {
-    /* R8: with no offer the Flipper sends an empty party; Ruby opens its menu with an empty
+    /* With no offer the Flipper sends an empty party; Ruby opens its menu with an empty
      * partner column. */
     Bench b;
     bench_init_trade(&b);
@@ -548,7 +548,7 @@ static bool trade_block_is(const BenchBlock* blk, uint16_t code, uint16_t arg) {
 }
 
 /* The Flipper's reply went out after 6 idle bursts or more, counted from the burst of the last
- * chunk of the GBA's block (D4; §B3.4 asks >= 5). A literal, not the club's constant, so a change
+ * chunk of the GBA's block (§B3.4 asks >= 5). A literal, not the club's constant, so a change
  * there shows here. */
 static bool replied_after(const BenchBlock* gba, const BenchBlock* flipper) {
     return gba && flipper && flipper->first_burst >= gba->last_burst + 7;
@@ -597,7 +597,7 @@ TEST(test_trade_offer_confirm_ccdd) {
     ASSERT_TRUE(run_until_fake_phase(&b, FakeRubyTrade, 120));
     ASSERT_EQ(b.sent_5fff, answers + 1);
     ASSERT_TRUE(run_until_phase(&b, Gen3ClubPhaseWaiting, 60));
-    ASSERT_TRUE(club_status(&b).trade_pending); /* trade context (D3) */
+    ASSERT_TRUE(club_status(&b).trade_pending); /* trade context */
     ASSERT_EQ(n_trade_blocks(b.f_blocks, b.n_f_blocks), 2);
     ASSERT_TRUE(fake_ruby_error(&b.ruby) == NULL);
 }
@@ -708,7 +708,7 @@ static int refused_slot1(Bench* b, const uint8_t slot1[GEN3_PARTY_SIZE]) {
 }
 
 TEST(test_trade_refuses_egg) {
-    /* D8: the Flipper takes no Egg; the GBA may then pick another Pokemon */
+    /* The Flipper takes no Egg; the GBA may then pick another Pokemon */
     Bench b;
     uint8_t egg[GEN3_PARTY_SIZE];
     tm_make_egg(egg);
@@ -727,7 +727,7 @@ TEST(test_trade_refuses_egg) {
 }
 
 TEST(test_trade_refuses_mail) {
-    /* D8: nor a Mail holder (the Flipper would have to keep its mail) */
+    /* Nor a Mail holder (the Flipper would have to keep its mail) */
     Bench b;
     uint8_t mail[GEN3_PARTY_SIZE];
     tm_make_mail(mail);
@@ -761,7 +761,7 @@ TEST(test_trade_only_pokemon_stays) {
     ASSERT_TRUE(fake_ruby_error(&b.ruby) == NULL);
 }
 
-/* bench_init_trade with the offer replaced by 100 zero bytes before round 1 (R8): the GBA's menu
+/* bench_init_trade with the offer replaced by 100 zero bytes before round 1: the GBA's menu
  * shows no Flipper Pokemon. A test-only offer: the club holds one, unchanged since round 1, so
  * it sends no EEBB (test_trade_empty_offer_eebb has no offer at all), and round 1 shows nothing
  * (no hasSpecies bit). Until Browsing. */
@@ -775,8 +775,8 @@ static bool reach_menu_empty_offer(Bench* b) {
 }
 
 TEST(test_trade_no_dddd_to_empty_party) {
-    /* R8: the GBA shows no Flipper Pokemon, so a DDDD would point at a partner icon Ruby never
-     * made. Its AABB gets DDEE (the R8 gate: round 1 showed nothing). */
+    /* The GBA shows no Flipper Pokemon, so a DDDD would point at a partner icon Ruby never
+     * made. Its AABB gets DDEE (round 1 showed nothing). */
     Bench b;
     ASSERT_TRUE(reach_menu_empty_offer(&b));
     fake_ruby_offer(&b.ruby, 2);
@@ -792,7 +792,7 @@ TEST(test_trade_no_dddd_to_empty_party) {
 }
 
 TEST(test_trade_dddd_to_empty_party_trips_fake) {
-    /* R8: a DDDD to an empty partner column, as soon as the GBA's AABB is complete */
+    /* A DDDD to an empty partner column, as soon as the GBA's AABB is complete */
     Bench b;
     ASSERT_TRUE(reach_menu_empty_offer(&b));
     fake_ruby_offer(&b.ruby, 2);
@@ -1044,7 +1044,7 @@ TEST(test_trade_dcba_after_abcd) {
 }
 
 TEST(test_trade_save_window) {
-    /* D10: save_window from the club's sync-1 answer to sync 3, and the trade counts at sync 3 */
+    /* save_window from the club's sync-1 answer to sync 3, and the trade counts at sync 3 */
     Bench b;
     bool answered = false;
     bool saw[GEN3_CLUB_SAVE_SYNCS + 1] = {false};
@@ -1118,7 +1118,7 @@ TEST(test_trade_national_dex_on) {
 }
 
 TEST(test_trade_lost_before_sync1) {
-    /* D5: the GBA is switched off in the animation: nothing is written on it; the Flipper keeps
+    /* The GBA is switched off in the animation: nothing is written on it; the Flipper keeps
      * its Pokemon (Canceled) */
     Bench b;
     uint8_t offer[GEN3_PARTY_SIZE];
@@ -1145,7 +1145,7 @@ TEST(test_trade_lost_before_sync1) {
 }
 
 TEST(test_trade_lost_in_window) {
-    /* D5: the Flipper stops bursting after its sync-1 answer; the GBA's save is half-written, so
+    /* The Flipper stops bursting after its sync-1 answer; the GBA's save is half-written, so
      * it reports a corrupt save and loads the pre-trade one: the Flipper keeps its Pokemon
      * (RolledBack) */
     Bench b;
@@ -1172,7 +1172,7 @@ TEST(test_trade_lost_in_window) {
 }
 
 TEST(test_trade_lost_after_sync2) {
-    /* D5: the GBA is switched off after the club's sync-2 answer: it has committed, so the
+    /* The GBA is switched off after the club's sync-2 answer: it has committed, so the
      * Flipper takes its Pokemon (Assumed) */
     Bench b;
     uint8_t x[GEN3_PARTY_SIZE];
@@ -1200,7 +1200,7 @@ TEST(test_trade_lost_after_sync2) {
 }
 
 TEST(test_trade_save_long_stalls) {
-    /* Review Focus 4: each flash sector stalls the GBA's main loop 10 frames */
+    /* Each flash sector stalls the GBA's main loop 10 frames */
     Bench b;
     bench_init_trade(&b);
     fake_ruby_set_sector_stall(&b.ruby, 10);
@@ -1239,7 +1239,7 @@ TEST(test_trade_extra_2ffe_trips_fake) {
 }
 
 TEST(test_club_offer_guard) {
-    /* D6: an app that hasn't seen the latest trade can't overwrite the received Pokemon */
+    /* An app that hasn't seen the latest trade can't overwrite the received Pokemon */
     Bench b;
     uint8_t x[GEN3_PARTY_SIZE];
     uint8_t z[GEN3_PARTY_SIZE];
@@ -1256,7 +1256,7 @@ TEST(test_club_offer_guard) {
 }
 
 TEST(test_trade_unexpected_1144) {
-    /* D2: a 0x1144 block while no trade is pending gets a 0x1133 block (the GBA stalls before
+    /* A 0x1144 block while no trade is pending gets a 0x1133 block (the GBA stalls before
      * anything is written) and Error/Unexpected */
     Bench b;
     uint8_t mon[GEN3_PARTY_SIZE];
@@ -1277,7 +1277,7 @@ TEST(test_trade_unexpected_1144) {
 }
 
 TEST(test_trade_pending_dropped_by_relink) {
-    /* D3: a pending trade outlives the GBA closing the menu link, but the GBA's next block of a
+    /* A pending trade outlives the GBA closing the menu link, but the GBA's next block of a
      * type other than 0x1144 (it restarted) drops it: the trade never began on the GBA */
     Bench b;
     bench_init_trade(&b);
@@ -1328,7 +1328,7 @@ static bool power_off_after_sync2_answer(Bench* b, uint32_t late) {
 }
 
 TEST(test_trade_sync2_answer_lost) {
-    /* D5: the GBA goes before the burst that would carry the club's sync-2 answer. It never
+    /* The GBA goes before the burst that would carry the club's sync-2 answer. It never
      * commits, so the club counts no trade: RolledBack */
     Bench b;
     uint8_t got[GEN3_PARTY_SIZE];
@@ -1490,7 +1490,7 @@ TEST(test_trade_early_2ffe_trips_fake) {
 }
 
 TEST(test_trade_offer_without_species_bit) {
-    /* R8: round 1 counts as showing a Pokemon only with its hasSpecies bit (byte 0x13 bit 1,
+    /* Round 1 counts as showing a Pokemon only with its hasSpecies bit (byte 0x13 bit 1,
      * outside the encryption). Without it the GBA's AABB gets DDEE, never DDDD. Conservative: Ruby
      * counts by species and still shows this one. */
     Bench b;
@@ -1625,7 +1625,7 @@ TEST(test_trade_lost_before_menu_close) {
 }
 
 TEST(test_trade_pending_survives_menu_close) {
-    /* D3, the normal path: the club answers the GBA's 5FFF, the menu link closes, and the trade
+    /* The normal path: the club answers the GBA's 5FFF, the menu link closes, and the trade
      * stays pending into the 0x1144 session */
     Bench b;
     bench_init_trade(&b);
@@ -1745,7 +1745,7 @@ static bool run_until_back_in_room(Bench* b) {
 }
 
 TEST(test_trade_unexpected_1111) {
-    /* D2: a 0x1111 block that no EEBB of the Flipper's led to gets a 0x1133 block (the GBA hangs
+    /* A 0x1111 block that no EEBB of the Flipper's led to gets a 0x1133 block (the GBA hangs
      * before its room) and Error/Unexpected */
     Bench b;
     bench_init_cfg(&b, GEN3_LINKTYPE_TRADE, &club_cfg_trade);
@@ -1762,7 +1762,7 @@ TEST(test_trade_unexpected_1111) {
 }
 
 TEST(test_trade_edit_in_menu_sends_eebb) {
-    /* Review Focus 1, §B7: the offer changes while the GBA browses. One unsolicited EEBB sends it
+    /* §B7: the offer changes while the GBA browses. One unsolicited EEBB sends it
      * back to the room (0x1111, its avatar still on its seat); it steps off and back on, and the
      * fresh exchange shows the new Pokemon */
     Bench b;
@@ -1852,7 +1852,7 @@ TEST(test_trade_edit_after_dddd_never_ccdd) {
 }
 
 TEST(test_trade_edit_before_reexchange) {
-    /* §B6.1, D6: an offer set before the post-save exchange's round 1 is what that exchange shows,
+    /* §B6.1: an offer set before the post-save exchange's round 1 is what that exchange shows,
      * with no EEBB and no GBA input */
     Bench b;
     uint8_t z[GEN3_PARTY_SIZE];
@@ -1887,7 +1887,7 @@ TEST(test_trade_edit_before_reexchange) {
 }
 
 TEST(test_trade_two_round_trips) {
-    /* Review Focus 1: trade, edit the offer (EEBB, back to the room, re-sit), trade again */
+    /* Trade, edit the offer (EEBB, back to the room, re-sit), trade again */
     Bench b;
     uint8_t z[GEN3_PARTY_SIZE];
     uint8_t y_traded[GEN3_PARTY_SIZE];
@@ -1930,7 +1930,7 @@ TEST(test_trade_two_round_trips) {
 }
 
 TEST(test_trade_eebb_retry_after_summary) {
-    /* Review Focus 4, §B3.4 (link-protocol-trade.md T2): an EEBB that arrives while the GBA shows
+    /* §B3.4 (link-protocol-trade.md T2): an EEBB that arrives while the GBA shows
      * a summary is lost; the club resends it once GEN3_CLUB_EEBB_RETRY_BURSTS pass without the
      * GBA's 5FFF */
     Bench b;
@@ -1963,7 +1963,7 @@ TEST(test_trade_eebb_retry_after_summary) {
 }
 
 TEST(test_trade_checksum_glitch_resits) {
-    /* Review Focus 4, D4: a checksum error the Flipper counts in the party exchange (a glitch at
+    /* A checksum error the Flipper counts in the party exchange (a glitch at
      * its own receiver: the GBA is fine) taints the session. The GBA gets an unsolicited EEBB,
      * never DDDD; it re-sits, and the clean exchange trades */
     Bench b;
@@ -2041,7 +2041,7 @@ TEST(test_trade_relink_identity_checked) {
 }
 
 TEST(test_trade_empty_offer_eebb) {
-    /* R8, D4: no offer at round 1, so the GBA's menu shows no Flipper Pokemon. Once round 5 is
+    /* No offer at round 1, so the GBA's menu shows no Flipper Pokemon. Once round 5 is
      * done an unsolicited EEBB sends the GBA back to the room; never a DDDD */
     Bench b;
     uint16_t codes[8];
@@ -2072,8 +2072,8 @@ TEST(test_trade_empty_offer_eebb) {
 }
 
 TEST(test_trade_editing_sends_eebb) {
-    /* O1: the app opens the editor while the GBA browses. One EEBB; the GBA re-sits, but the
-     * Flipper doesn't sit until the edit is done, then joins it (R5) */
+    /* The app opens the editor while the GBA browses. One EEBB; the GBA re-sits, but the
+     * Flipper doesn't sit until the edit is done, then joins it */
     Bench b;
     uint8_t offer[GEN3_PARTY_SIZE];
     tm_make(252, 5, 21, offer); /* bench_init_trade's offer */
@@ -2116,7 +2116,7 @@ TEST(test_trade_editing_sends_eebb) {
 }
 
 TEST(test_trade_editing_blocks_ccdd) {
-    /* O1: while editing, the GBA's BBBB gets EEBB, never CCDD; and its AABB, never DDDD */
+    /* While editing, the GBA's BBBB gets EEBB, never CCDD; and its AABB, never DDDD */
     {
         Bench b;
         uint16_t codes[8];
@@ -2179,7 +2179,7 @@ TEST(test_trade_editing_blocks_ccdd) {
 }
 
 TEST(test_trade_editing_refused_while_pending) {
-    /* O1: editing can't begin once CCDD is queued, nor before the app has seen the trade's
+    /* Editing can't begin once CCDD is queued, nor before the app has seen the trade's
      * Pokemon; clearing it always works */
     Bench b;
     bench_init_trade(&b);
@@ -2354,7 +2354,7 @@ TEST(test_trade_resit_needed_survives_disconnect) {
 TEST(test_trade_return_due_consumed) {
     /* The 0x1111 the Flipper's EEBB announced is followed only by the GBA's next LinkPlayerBlock,
      * whatever its type. Here the GBA restarts after the EEBB and walks in with 0x1133; a stray
-     * 0x1111 later gets 0x1133 and Error/Unexpected (D2) */
+     * 0x1111 later gets 0x1133 and Error/Unexpected */
     Bench b;
     uint8_t z[GEN3_PARTY_SIZE];
     make_z(z);
@@ -2381,7 +2381,7 @@ TEST(test_trade_return_due_consumed) {
     ASSERT_EQ(fake_ruby_partner(&b.ruby)->link_type, GEN3_LINKTYPE_TRADE_SETUP);
 }
 
-/* ---- Leaving the Cable Club (D9, §B7) ---- */
+/* ---- Leaving the Cable Club (§B7) ---- */
 
 /* Until the GBA has closed the link of its walk out (fake Closed), then left within 3 frames:
  * the exit's close is the end at once, with no relink awaited. */
@@ -2404,7 +2404,7 @@ static bool stays_left(Bench* b) {
 }
 
 TEST(test_leave_from_room) {
-    /* D9, §B7: one CAFE 0017 makes the idle GBA run its own exit (TradeRoom_TerminateLink). Its
+    /* §B7: one CAFE 0017 makes the idle GBA run its own exit (TradeRoom_TerminateLink). Its
      * own 0017 then isn't answered; its 5FFF is, and it closes the link */
     Bench b;
     ASSERT_TRUE(reach_room(&b));
@@ -2426,7 +2426,7 @@ TEST(test_leave_from_room) {
 }
 
 TEST(test_leave_from_menu) {
-    /* D9: in the trade menu the request makes the offer stale: EEBB, the 0x1111 room, then the
+    /* In the trade menu the request makes the offer stale: EEBB, the 0x1111 room, then the
      * CAFE 0017 once the GBA's fade-in is over. Leaving survives the relink's Waiting */
     Bench b;
     bench_init_trade(&b);
@@ -2458,7 +2458,7 @@ TEST(test_leave_from_menu) {
 }
 
 TEST(test_leave_as_trade_starts) {
-    /* D9: asked once both sit, when the GBA starts the trade menu (§B1.3 row 4): no 0017 in that
+    /* Asked once both sit, when the GBA starts the trade menu (§B1.3 row 4): no 0017 in that
      * room. The club follows the GBA to the menu (EEBB) and back to the room (the one 0017) */
     Bench b;
     bench_init_trade(&b);
@@ -2510,7 +2510,7 @@ TEST(test_leave_while_seated) {
 }
 
 TEST(test_leave_never_sits) {
-    /* D9 with R5: once leaving, the club never sits, even with an offer and the GBA seated. A
+    /* Once leaving, the club never sits, even with an offer and the GBA seated. A
      * Flipper 0x16 after its 0x17 would turn its EXITING slot READY and start the trade menu */
     Bench b;
     bool seated_while_leaving = false;
@@ -2533,9 +2533,9 @@ TEST(test_leave_never_sits) {
 }
 
 TEST(test_leave_gba_walks_back_in) {
-    /* D9: left is sticky. A GBA that walks back into the Cable Club after End trade and sits gets
+    /* Left is sticky. A GBA that walks back into the Cable Club after End trade and sits gets
      * no Flipper seat, so no trade can start: neither as the answer to its seat, nor as a late
-     * sit (R5) once the Flipper has a new offer */
+     * sit once the Flipper has a new offer */
     for(int late = 0; late < 2; late++) {
         Bench b;
         uint8_t z[GEN3_PARTY_SIZE];
@@ -2570,7 +2570,7 @@ TEST(test_leave_gba_walks_back_in) {
 }
 
 TEST(test_leave_save_outcome_shown) {
-    /* D5 with D9: End trade during a trade, then the link lost in the GBA's save. The leave is
+    /* End trade during a trade, then the link lost in the GBA's save. The leave is
      * over (left), and the guide shows the save's outcome, not "Link ended": lost after the
      * sync-1 answer, RolledBack; after the sync-2 answer, Assumed */
     for(uint8_t syncs = 1; syncs <= 2; syncs++) {
@@ -2599,7 +2599,7 @@ TEST(test_leave_save_outcome_shown) {
 }
 
 TEST(test_leave_waits_for_save) {
-    /* D9, R6: asked in the frame CCDD is queued, the leave waits for the trade and its link save
+    /* Asked in the frame CCDD is queued, the leave waits for the trade and its link save
      * (no 0017, no EEBB, never left); the post-save menu then gets EEBB, and the room the 0017 */
     Bench b;
     uint16_t codes[8];
@@ -2705,7 +2705,7 @@ TEST(test_leave_left_menu_stale) {
 }
 
 TEST(test_leave_when_waiting) {
-    /* D9: no GBA linked: left at once */
+    /* No GBA linked: left at once */
     Bench b;
     bench_init_trade(&b);
     run(&b, 10);
@@ -2722,7 +2722,7 @@ TEST(test_leave_when_waiting) {
 }
 
 TEST(test_leave_in_relink_gap) {
-    /* D9: Waiting between the EEBB's close and the GBA's 0x1111 relink is no "no GBA linked": a
+    /* Waiting between the EEBB's close and the GBA's 0x1111 relink is no "no GBA linked": a
      * request there waits for the room and walks the GBA out */
     Bench b;
     uint8_t z[GEN3_PARTY_SIZE];
@@ -2743,7 +2743,7 @@ TEST(test_leave_in_relink_gap) {
 }
 
 TEST(test_leave_gba_gone) {
-    /* D9: the link lost for good while leaving is left too: a power-off with the GBA linked at
+    /* The link lost for good while leaving is left too: a power-off with the GBA linked at
      * once, and in a relink's gap after GEN3_CLUB_RELINK_WAIT_FRAMES */
     {
         Bench b;
@@ -2801,7 +2801,7 @@ TEST(test_status_relinking) {
     /* Waiting in a relink's gap is no "no GBA linked". status.relinking shows it from the club's
      * 5FFF answer until the GBA connects again, or until the relink wait runs out (the GBA gone),
      * and the end decisions read it: End trade asks, "Stop link?" is refused while the trade is
-     * pending, and both stop once the wait has run out (D1). */
+     * pending, and both stop once the wait has run out. */
     {
         /* The 0x1144 gap after CCDD, the relink made */
         Bench b;
@@ -3039,7 +3039,7 @@ TEST(test_guide_through_relinks) {
 #undef GUIDE_UNTIL
 
 TEST(test_leave_and_gba_exit) {
-    /* D9: the GBA's own 0017 and the request make one 0017 between them */
+    /* The GBA's own 0017 and the request make one 0017 between them */
     {
         /* The GBA walks out just after the request: its 0017 comes after the Flipper's */
         Bench b;
@@ -3111,7 +3111,7 @@ static bool leave_with_queued(Bench* b, bool gba_leaves, uint32_t request_at, Le
 }
 
 TEST(test_leave_queue_busy) {
-    /* D9: the 0017 goes out only from an empty queue (leave_step) */
+    /* The 0017 goes out only from an empty queue (leave_step) */
     {
         /* With a command queued in the frame it is due, it goes out exactly one burst later, and
          * only once */
@@ -3152,7 +3152,7 @@ TEST(test_leave_queue_busy) {
 }
 
 TEST(test_leave_during_linkup) {
-    /* D9: asked in each Part A linkup phase, the leave waits: the linkup ends, the GBA walks in to
+    /* Asked in each Part A linkup phase, the leave waits: the linkup ends, the GBA walks in to
      * the room, then the one 0017 walks it out, with no link error */
     static const Gen3ClubPhase phases[] = {
         Gen3ClubPhaseLinked,

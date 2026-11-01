@@ -9,7 +9,7 @@
 
 /* The helper's save and ROM commands on the fake GBA (multiboot-and-save.md §6.3-§6.5): the flash
  * reads and when they are allowed, the slot checks, ARM_WRITE and its refusals, the write commands
- * and their gates, duplicates (plan 5 D3), and the ROM reads. A refused command must leave the chip
+ * and their gates, duplicates, and the ROM reads. A refused command must leave the chip
  * byte-identical. */
 
 #define MIB 0x100000u
@@ -1047,7 +1047,7 @@ TEST(test_hp_mode1_blank) {
     }
 }
 
-/* ---- Duplicates (plan 5 D3) ---- */
+/* ---- Duplicates ---- */
 
 /* The CRC a request carries: over w1, n and its arguments, each word low byte first */
 static uint32_t request_crc(uint16_t w1, const uint16_t* a, uint16_t n) {

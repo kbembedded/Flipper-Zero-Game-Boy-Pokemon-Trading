@@ -39,7 +39,7 @@ void gen3_trade_sync_restart(Gen3TradeSync* sync) {
     }
 }
 
-/* Step 1 (O2): take the latest trade's Pokemon into the editor, or retry a NoData pickup.
+/* Step 1: take the latest trade's Pokemon into the editor, or retry a NoData pickup.
  * The club keeps the received bytes, and no new trade can happen while the offer is unpublished,
  * so a retry reads the same Pokemon. */
 static unsigned sync_pickup(
@@ -80,7 +80,7 @@ static unsigned sync_pickup(
     return Gen3SyncPickupBad;
 }
 
-/* Step 2 (D7) */
+/* Step 2 */
 static unsigned sync_trainer(Gen3TradeSync* sync, Gen3Editor* ed, const Gen3ClubStatus* st) {
     if(!st->trainer_valid) return 0;
     Gen3Trainer t;
@@ -89,7 +89,7 @@ static unsigned sync_trainer(Gen3TradeSync* sync, Gen3Editor* ed, const Gen3Club
     const uint32_t pid = gen3_pkm_get(&ed->pkm, Gen3FieldPid);
     const uint32_t ot_id = gen3_pkm_get(&ed->pkm, Gen3FieldOtId);
     gen3_edit_set_trainer(ed, &t);
-    /* O2: the block follows a trainer swap. Only a pristine editor changes here, and while
+    /* The block follows a trainer swap. Only a pristine editor changes here, and while
      * gone_valid that is the default traded away, now under this player's OT: still blocked, to
      * this player and to the one it went to. */
     if(sync->gone_valid && (gen3_pkm_get(&ed->pkm, Gen3FieldPid) != pid ||
@@ -102,7 +102,7 @@ static unsigned sync_trainer(Gen3TradeSync* sync, Gen3Editor* ed, const Gen3Club
     return Gen3SyncTrainer;
 }
 
-/* Step 3 (D8, O2): only a Pokemon that passes gen3_trade_offer_check is ever offered. A valid
+/* Step 3: only a Pokemon that passes gen3_trade_offer_check is ever offered. A valid
  * one goes out with its traits even while the GBA's own rules refuse it (st->partner_rules): the
  * club applies the rules of the GBA linked when it shows the offer, which may be a later one. */
 static unsigned sync_offer(Gen3TradeSync* sync, const Gen3Editor* ed, const Gen3ClubStatus* st) {
@@ -155,7 +155,7 @@ bool gen3_trade_sync_settled(const Gen3TradeSync* sync, uint32_t received_count)
 }
 
 /* A GBA is linked, or in a relink's gap: stopping now would drop it mid-relink, a link error on
- * the GBA. Waiting without relinking is "no GBA linked" (D1). */
+ * the GBA. Waiting without relinking is "no GBA linked". */
 static bool gba_linked(const Gen3ClubStatus* st) {
     return st->phase != Gen3ClubPhaseWaiting || st->relinking;
 }
@@ -173,7 +173,7 @@ Gen3TradeEndAction gen3_trade_end_action(const Gen3ClubStatus* st, bool running,
     if(!running) return Gen3TradeEndMenu;
     if(st->save_window) return Gen3TradeEndSaving;
     if(gba_linked(st)) return Gen3TradeEndAsk;
-    /* No GBA linked, so R6 allows the stop (a pending trade here lost its relink before sync 1) */
+    /* No GBA linked, so a stop is allowed (a pending trade here lost its relink before sync 1) */
     return settled ? Gen3TradeEndStop : Gen3TradeEndPickup;
 }
 
@@ -260,7 +260,7 @@ static void guide_pick(
     if(!cable_ok) SAY("Plug in the cable", "(or swap its ends).", "");
     if(!started) SAY("Starting...", "", "");
     if(st->save_window) SAY("The GBA is saving.", "Don't unplug or turn", "off. Back is locked.");
-    /* The latest trade reached the GBA's save and lost its link there (D5): its outcome, in the
+    /* The latest trade reached the GBA's save and lost its link there: its outcome, in the
      * Waiting rows below, outranks the leave's rows, which End trade during that trade brings
      * too. Not an older trade's: none pending since, and no GBA linked again (not even a relink's
      * gap) */
@@ -299,7 +299,7 @@ static void guide_pick(
         }
         SAY("Link error. Restart", "the GBA, then go to", "the Cable Club.");
     }
-    /* No valid offer (R5, O2): the club doesn't sit, and in the menu it sends EEBB */
+    /* No valid offer: the club doesn't sit, and in the menu it sends EEBB */
     if(pickup_fail == Gen3PickupNoData)
         SAY("Can't take the traded", "Pokemon: data file", "unreadable. Retrying.");
     if(pickup_fail == Gen3PickupBadData)
@@ -314,7 +314,7 @@ static void guide_pick(
             SAY("Can't offer it: FRLG", "needs Fateful: Yes on", "Mew/Deoxys: edit it.");
         }
     } else if(offer_refuse != Gen3RefuseNone) {
-        /* R5: the Flipper sits as soon as there is a valid offer */
+        /* The Flipper sits as soon as there is a valid offer */
         if(st->phase == Gen3ClubPhaseRoom && st->gba_seated)
             SAY("Can't offer it:", guide_reason(offer_refuse), "Edit it; stay seated.");
         SAY("Can't offer it:", guide_reason(offer_refuse), "Edit it first.");
@@ -348,7 +348,7 @@ static void guide_pick(
     case Gen3ClubPhaseMenu:
         if(st->offer_stale || st->menu == Gen3ClubMenuLeaving)
             SAY("Updating the trade", "menu: the GBA goes", "back to the room.");
-        /* An R8 DDEE leaves refused at None: no reason is shown for it */
+        /* A DDEE to an empty party leaves refused at None: no reason is shown for it */
         if(st->refused != Gen3RefuseNone)
             SAY("Can't take that one:", guide_reason(st->refused), "Pick another one.");
         if(st->menu == Gen3ClubMenuOffered) SAY("Confirm the trade", "on the GBA.", "");

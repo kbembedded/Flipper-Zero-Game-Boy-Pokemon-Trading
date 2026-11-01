@@ -10,7 +10,7 @@
 #include <src/gen3/gen3_trade_sync.h>
 #include <src/scenes/include/pokemon_gen3_menu.h>
 
-/* End trade (D9, D10), over the Gen III menu. The scene state is what it shows (a
+/* End trade, over the Gen III menu. The scene state is what it shows (a
  * Gen3TradeEndAction: Saving, Ask or Pickup), plus GEN3_TRADE_END_STOP_LINK if it was opened
  * from a confirmed "Stop link?".
  * - Saving: the GBA is saving; OK returns.
@@ -104,13 +104,13 @@ static void gen3_trade_end_go_on(PokemonFap* pokemon_fap, bool end_anyway) {
     switch(action) {
     case Gen3TradeEndSaving:
     case Gen3TradeEndPickup:
-        /* Not now: say why (D10), or still unreadable */
+        /* Not now: say why, or still unreadable */
         scene_manager_set_scene_state(
             scene_manager, PokemonSceneGen3TradeEnd, (uint32_t)action | stop_link);
         pokemon_scene_gen3_trade_end_on_enter(pokemon_fap);
         break;
     case Gen3TradeEndAsk:
-        /* D9: the club asks the GBA to walk out; the trade screen shows it leave, and the tick
+        /* The club asks the GBA to walk out; the trade screen shows it leave, and the tick
          * stops the session once the GBA has closed the link (left) */
         gen3_session_request_leave(pokemon_fap->gen3_session);
         scene_manager_search_and_switch_to_previous_scene(scene_manager, PokemonSceneGen3Menu);

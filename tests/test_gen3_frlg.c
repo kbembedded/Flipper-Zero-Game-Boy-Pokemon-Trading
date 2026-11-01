@@ -1071,7 +1071,7 @@ TEST(test_frlg_trade_relink_timeout) {
     /* §C4: a 0x1144 relink that doesn't come: FireRed's CheckLinkTimeout (fr: trade_scene.c:
      * CB2_LinkTrade) closes the link and shows a link error. OpenLink 2 frames after its close,
      * 61 frames in state 2, one in state 3, then 301 in state 4. Nothing was written: the club's
-     * pending trade waits for the GBA's next block, which cancels it (plan 3 D3) */
+     * pending trade waits for the GBA's next block, which cancels it */
     Bench b;
     uint32_t frames = 0;
     bench_init_frlg(&b, GEN3_VERSION_FIRERED, false);
@@ -1186,7 +1186,7 @@ TEST(test_frlg_national_dex_ignored) {
 }
 
 TEST(test_frlg_lost_in_window) {
-    /* §C6, plan 3 D5: the Flipper stops bursting after its sync-1 answer; FireRed's save is
+    /* §C6: the Flipper stops bursting after its sync-1 answer; FireRed's save is
      * half-written, so it reports a corrupt save and loads the pre-trade one: RolledBack */
     Bench b;
     bench_init_frlg(&b, GEN3_VERSION_FIRERED, false);
@@ -1212,7 +1212,7 @@ TEST(test_frlg_lost_in_window) {
 }
 
 TEST(test_frlg_lost_after_sync2) {
-    /* §C6, plan 3 D5: FireRed is switched off after the club's sync-2 answer, which a whole clean
+    /* §C6: FireRed is switched off after the club's sync-2 answer, which a whole clean
      * burst carried: it has committed, so the Flipper takes its Pokemon (Assumed) */
     Bench b;
     uint8_t x[GEN3_PARTY_SIZE];

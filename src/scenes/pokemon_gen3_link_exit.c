@@ -9,7 +9,7 @@
 #include <src/scenes/include/pokemon_gen3_menu.h>
 
 /* "Stop link?": Back on the Link Test while the GBA is in the Cable Club, or on the trade screen
- * while a leave goes on (D1). Stop is refused while R6 forbids it (gen3_trade_stop_allowed). */
+ * while a leave goes on. Stop is refused while gen3_trade_stop_allowed forbids it. */
 
 static void pokemon_scene_gen3_link_exit_dialog_callback(DialogExResult result, void* context) {
     PokemonFap* pokemon_fap = context;
@@ -51,11 +51,11 @@ bool pokemon_scene_gen3_link_exit_on_event(void* context, SceneManagerEvent even
         } else if(event.event == DialogExResultRight) {
             /* Decided now, from a fresh status: the link may have moved on while the dialog
              * was up. A trade session's received Pokemon is picked up first, so no stop frees
-             * the club with it; a Link Test session is settled and sets neither flag R6
-             * reads, so it always gets Stop. */
+             * the club with it; a Link Test session is settled and sets neither flag
+             * gen3_trade_stop_allowed reads, so it always gets Stop. */
             const Gen3TradeEndAction action = gen3_trade_end_decide(pokemon_fap, true);
             if(action == Gen3TradeEndSaving || action == Gen3TradeEndAsk) {
-                /* R6: the GBA is saving, or a trade is under way with it linked: as Stay */
+                /* The GBA is saving, or a trade is under way with it linked: as Stay */
                 consumed = scene_manager_previous_scene(pokemon_fap->scene_manager);
             } else {
                 if(action == Gen3TradeEndStop) {

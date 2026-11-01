@@ -226,7 +226,7 @@ Gen3CartResult gen3_cart_connect(Gen3Cart* c) {
 
 /* Every sector into the temporary file, with its CRC; then the cart reads each one again
  * (SECTOR_CRC32), and the card gives back the same bytes: a backup verified three ways, the
- * packet CRC being the first (plan 5 D7). Each sector's footer is kept for gen3_cart_attach. */
+ * packet CRC being the first. Each sector's footer is kept for gen3_cart_attach. */
 static Gen3CartResult cart_backup_read(Gen3Cart* c) {
     const Gen3Store* st = &c->store;
     void* f = st->open(st->ctx, GEN3_CART_BACKUP_TMP, Gen3StoreCreate);
@@ -877,7 +877,7 @@ Gen3CartMon gen3_cart_mon_place(
 #define CART_POST_STEPS (3u * GEN3_SAVE_SECTORS)
 #define CART_NO_IMAGE 0xFFu
 
-/* A write: its plan, ARM_WRITE's mode, and where its 14 images come from (plan 5 D4, D6) */
+/* A write: its plan, ARM_WRITE's mode, and where its 14 images come from */
 typedef struct {
     Gen3SaveWritePlan plan;
     /* 0: over the slot the game doesn't load, the other one being the save as backed up; 1: a
@@ -1192,7 +1192,7 @@ static Gen3CartResult cart_post_read_back(Gen3Cart* c, const CartWrite* w) {
     return r;
 }
 
-/* Step 10 (plan 5 D4): the new backup, made as gen3_cart_backup makes one, from the old backup and
+/* Step 10: the new backup, made as gen3_cart_backup makes one, from the old backup and
  * the images; it is checked on the cart and on the card, analyzed, kept as backups/<code>_<tid>_
  * <stamp>.sav, and the working copy is built from it. A lost link before it is kept leaves the
  * write to finish: its next run finds the slot written. Any other failure leaves the cart written

@@ -14,12 +14,12 @@
 #include <src/views/gen3_trade.h>
 
 /* The Gen III trade screen (Gen3Trade) and the app tick that runs a trade session behind every
- * Gen III scene (D1, D6). The session and the trade view are allocated together by Gen III ->
+ * Gen III scene. The session and the trade view are allocated together by Gen III ->
  * Trade, and freed together by the Gen III menu once no trade session runs. The sync is allocated
- * by the first Trade and kept until the app exits, so the block on a traded-away Pokemon (O2)
+ * by the first Trade and kept until the app exits, so the block on a traded-away Pokemon
  * outlives the session. */
 
-/* Ticks between two tries to reopen the bulk file for a NoData pickup retry (O2): 1 s. A corrupt
+/* Ticks between two tries to reopen the bulk file for a NoData pickup retry: 1 s. A corrupt
  * file costs a full CRC pass per try. */
 #define GEN3_TRADE_BULK_RETRY_TICKS 10
 /* Ticks between two tries to start the session while the cable reads OK but the start fails
@@ -42,7 +42,7 @@ static uint8_t gen3_trade_bulk_wait;
 static uint8_t gen3_trade_start_wait;
 
 /* The current scene can change the editor's Pokemon: an editor scene, or Load. The sync holds the
- * offer meanwhile (D6), and the club's editing flag stays set (O1). The trade screen, the menu
+ * offer meanwhile, and the club's editing flag stays set. The trade screen, the menu
  * and the dialogs over them that neither change nor show the Pokemon don't edit, so the trade
  * screen stays up to date behind them; Save .pk3 does edit (it holds the sync). */
 static bool gen3_trade_editing(PokemonFap* pokemon_fap) {
@@ -60,7 +60,7 @@ static bool gen3_trade_editing(PokemonFap* pokemon_fap) {
 
 /* A new club (a start) or none (a stop): the sync and the latch begin again. A restarted club
  * has no offer and trades_done 0, which the sync's reset rule alone doesn't make it publish
- * again. The block on a traded-away Pokemon stays (O2). */
+ * again. The block on a traded-away Pokemon stays. */
 static void gen3_trade_reset(PokemonFap* pokemon_fap) {
     gen3_trade_sync_restart(pokemon_fap->gen3_trade_sync);
     gen3_trade_result_latched = false;
@@ -111,11 +111,11 @@ void gen3_trade_tick(PokemonFap* pokemon_fap) {
     uint32_t received_count = 0;
     gen3_session_get_received(s, gen3_trade_received, &received_count);
 
-    /* 3. Sync (D6): only between edits */
+    /* 3. Sync: only between edits */
     if(trading) {
         const bool editing = gen3_trade_editing(pokemon_fap);
 
-        /* O2: a NoData pickup can only succeed once the bulk file reads again */
+        /* A NoData pickup can only succeed once the bulk file reads again */
         if(!editing && sync->pickup_fail == Gen3PickupNoData && !gen3_bulk_ready()) {
             if(gen3_trade_bulk_wait == 0) {
                 gen3_bulk_furi_open();
@@ -133,12 +133,12 @@ void gen3_trade_tick(PokemonFap* pokemon_fap) {
                s, sync->offer_valid ? sync->offer : NULL, sync->trades_seen, sync->offer_traits)) {
             gen3_trade_sync_offer_taken(sync);
         }
-        /* O1: back from editing. After the offer above, so the club sees the new offer before
+        /* Back from editing. After the offer above, so the club sees the new offer before
          * it may sit again. */
         if(!editing && st->editing) gen3_session_set_editing(s, false, 0);
     }
 
-    /* 4. End: the GBA has walked out and closed the link (D9). left is sticky and says nothing
+    /* 4. End: the GBA has walked out and closed the link. left is sticky and says nothing
      * about a trade: it only ends the session, and only once the sync has every trade's Pokemon
      * and no GBA is linked (gen3_trade_left_stop). Save .pk3, Gen3Result and the editor's
      * dialogs hold the sync without the club's editing flag, so a trade can finish there;
@@ -245,10 +245,10 @@ bool pokemon_scene_gen3_trade_on_event(void* context, SceneManagerEvent event) {
         const Gen3ClubStatus* st = gen3_menu_status(pokemon_fap, NULL, NULL);
         switch(gen3_trade_back_action(st, gen3_session_trading(pokemon_fap->gen3_session))) {
         case Gen3TradeBackLocked:
-            /* D10: the GBA is saving; the guide already says Back is locked */
+            /* The GBA is saving; the guide already says Back is locked */
             return true;
         case Gen3TradeBackStopLink:
-            /* D1: a leave that may have stalled can still be stopped (plan 1's "Stop link?") */
+            /* A leave that may have stalled can still be stopped ("Stop link?") */
             scene_manager_next_scene(pokemon_fap->scene_manager, PokemonSceneGen3LinkExit);
             return true;
         case Gen3TradeBackLeave:

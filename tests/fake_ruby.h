@@ -401,7 +401,7 @@ FakeRubyPhase fake_ruby_phase(const FakeRuby* g);
  * party slot fails its checksum), "bad offer" (a Flipper party slot holds a species, move or item
  * Ruby can't take, or mail, §B2.5), "bad request" (a CCCC type past sBlockRequestLookupTable),
  * "empty party" (a DDDD for a Flipper slot this GBA didn't count, as with an empty Flipper party:
- * Ruby animates a party icon it never made, R8), "unexpected dddd" (a DDDD unless this GBA waits
+ * Ruby animates a party icon it never made), "unexpected dddd" (a DDDD unless this GBA waits
  * in Link standby after its own AABB), "bad ccdd" (a CCDD unless this GBA's AABB, the Flipper's
  * DDDD and this GBA's BBBB were the latest blocks, in that order: Ruby trades whatever its cursor
  * holds, §B3.4), "ccdd hang" / "eebb hang" (CCDD's or EEBB's fade ended while gLinkCallback was

@@ -777,7 +777,7 @@ TEST(test_hlink_request_too_long) {
     ASSERT_EQ(gen3_hlink_state(&h), Gen3HlinkSending);
 }
 
-/* ---- Not ready: the Normal wire's slave that never got ready (D3, D4) ---- */
+/* ---- Not ready: the Normal wire's slave that never got ready ---- */
 
 /* A not-ready frame: 9 words, none clocked, as the Normal wire reports a slave that stalled
  * MLINK_NORMAL_STALL_TICKS ticks in every slot. */

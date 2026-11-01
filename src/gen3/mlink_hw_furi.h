@@ -126,7 +126,7 @@ bool mlink_hw_cable_ok(const MlinkHw* hw);
 /* Pins back to GpioModeAnalog, TIM2 off, ISR cleared. Does nothing if not running. */
 void mlink_hw_stop(MlinkHw* hw);
 
-/* Normal wire: true (from mlink_hw_alloc, D3) waits for the slave's ready (SI low) before each
+/* Normal wire: true (from mlink_hw_alloc) waits for the slave's ready (SI low) before each
  * slot; false clocks every slot on its tick, no SI check, no settle, 1 tick a slot, never not
  * ready (the BIOS phase of multiboot, multiboot-and-save.md §7.3). The ISR reads it once per slot,
  * so it takes effect from the next slot. May be called while the driver is stopped or running;

@@ -83,7 +83,7 @@ bool gen3_menu_editor_ready(PokemonFap* pokemon_fap);
  * Gen III events. */
 #define GEN3_TRADE_EVENT_EDIT 0x47330201u
 
-/* What ending the session takes now (D9, D10, R6), decided from a fresh status at the moment it is
+/* What ending the session takes now, decided from a fresh status at the moment it is
  * asked. Call from Gen3Menu, Gen3TradeEnd or Gen3LinkExit, on every button that may end or stop
  * it, never from what a dialog showed when it opened; pokemon_fap->gen3_session must exist. A
  * running trade session gets one tick first, so a finished trade's Pokemon is picked up and the

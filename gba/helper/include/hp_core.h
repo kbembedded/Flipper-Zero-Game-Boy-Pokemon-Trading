@@ -103,7 +103,7 @@ struct Hp {
                          * it since */
     /* WRITE_SECTOR's image, COPY_SECTOR's copy, READ_SECTOR's data */
     uint8_t sector_buf[HP_FLASH_SECTOR_LEN];
-    /* The last packet executed (plan 5 D3): its w1 (seq, code), its CRC, and its response's
+    /* The last packet executed: its w1 (seq, code), its CRC, and its response's
      * length; the response itself stays in resp until the next one executes */
     bool last_valid;
     uint16_t last_w1;
@@ -128,5 +128,5 @@ bool hp_exec_pending(const Hp* hp);
 /* Runs the pending command and queues its response; returns the response's first word, HP_SOF.
  * A write-class command (ARM_WRITE, ERASE_SECTOR .. COMMIT_SECTOR) with the same seq, code and
  * packet CRC as the last packet executed is not run again: P resent it because the response went
- * missing, and gets that response again (plan 5 D3). */
+ * missing, and gets that response again. */
 uint16_t hp_execute(Hp* hp);

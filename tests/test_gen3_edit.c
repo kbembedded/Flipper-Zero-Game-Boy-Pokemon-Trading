@@ -91,7 +91,7 @@ static bool editor_eq(const Gen3Editor* a, const Gen3Editor* b) {
            a->trainer.gender == b->trainer.gender;
 }
 
-/* The GBA player of the D7 tests: RUBY, TID 12345, SID 54321 (OT ID 0xD4313039), female */
+/* The GBA player of the player-OT tests: RUBY, TID 12345, SID 54321 (OT ID 0xD4313039), female */
 static const uint8_t RUBY_NAME[GEN3_OT_NAME_LEN] = {0xCC, 0xCF, 0xBC, 0xD3, 0xFF, 0xFF, 0xFF};
 static const uint8_t FLIPPER_NAME[GEN3_OT_NAME_LEN] = {0xC0, 0xC6, 0xC3, 0xCA, 0xCA, 0xBF, 0xCC};
 #define RUBY_OT_ID 0xD4313039u
@@ -309,7 +309,7 @@ TEST(test_edit_all_species) {
             bool ok = gen3_edit_national(&ed) == n && G(Species) == info->internal &&
                       G(Level) == levels[li] && G(Friendship) == info->friendship &&
                       edit_consistent(&ed);
-            /* D6: a new Pokemon's ability slot is pid & 1 on a two-ability species. */
+            /* A new Pokemon's ability slot is pid & 1 on a two-ability species. */
             if(info->ability[1] != 0) ok = ok && G(AbilityBit) == (G(Pid) & 1);
             for(int s = 0; ok && s < 4; s++) {
                 uint16_t m = gen3_pkm_get(&ed.pkm, Gen3FieldMove1 + s);
@@ -1335,7 +1335,7 @@ TEST(test_edit_no_data_load) {
     ASSERT_TRUE(bulk_file_open());
 }
 
-/* D7: the untouched initial default takes the GBA player's OT at once, and stays the default */
+/* The untouched initial default takes the GBA player's OT at once, and stays the default */
 TEST(test_edit_trainer_pristine) {
     Gen3Editor ed;
     ASSERT_TRUE(gen3_edit_init(&ed, 7));
@@ -1461,7 +1461,7 @@ TEST(test_edit_trainer_after_edit) {
     ASSERT_TRUE(edit_consistent(&ed));
 }
 
-/* D7 amends D5: once the player is known, a new species is theirs, and its first non-shiny PID is
+/* Once the player is known, a new species is theirs, and its first non-shiny PID is
  * searched against their OT ID. Without a player the OT is kept
  * (test_edit_species_resets_keeps_ot). */
 TEST(test_edit_species_takes_trainer) {
@@ -1514,7 +1514,7 @@ TEST(test_edit_species_takes_trainer) {
     ASSERT_TRUE(edit_consistent(&ed));
 }
 
-/* "OT: use <NAME>": the player's OT on any Pokemon, shininess kept where it can be (plan 2 D6) */
+/* "OT: use <NAME>": the player's OT on any Pokemon, shininess kept where it can be */
 TEST(test_edit_use_trainer_ot) {
     Gen3Editor ed;
     ASSERT_TRUE(gen3_edit_init(&ed, 7));
@@ -1633,7 +1633,7 @@ TEST(test_edit_trainer_raw_bytes) {
     ASSERT_TRUE(edit_consistent(&ed));
 }
 
-/* Pristine (D7, gen3_edit.h) until a call changes the Pokemon's bytes. A call that refuses, fails
+/* Pristine (gen3_edit.h) until a call changes the Pokemon's bytes. A call that refuses, fails
  * or changes nothing keeps it; set_trainer keeps it although it rewrites the OT. */
 TEST(test_edit_pristine_flags) {
     Gen3Editor ed;

@@ -8,10 +8,10 @@
 #include <src/gen3/gen3_rules.h>
 #include <src/gen3/gen3_trade_block.h>
 
-_Static_assert(GEN3_RUBY_ITEMS_COUNT == 349 && GEN3_ITEM_ENIGMA_BERRY == 175, "D8");
+_Static_assert(GEN3_RUBY_ITEMS_COUNT == 349 && GEN3_ITEM_ENIGMA_BERRY == 175, "Ruby's item rules");
 
 /* A deterministic random sequence of editor calls (out-of-range arguments included), 80- and
- * 100-byte imports, direct gen3_edit_load calls, GBA players (D7) and bulk reads that fail at
+ * 100-byte imports, direct gen3_edit_load calls, GBA players and bulk reads that fail at
  * random after a good open; now and then a new editor replaces the old one. After every step the
  * editor's Pokemon must be game-valid (fuzz_valid, which also cross-checks the trade's offer
  * check and gen3_offer_traits), a call that refuses or fails must leave the editor exactly as it
@@ -127,12 +127,12 @@ static bool fuzz_valid(const Gen3Pkm* p) {
     CHECK(item < GEN3_ITEM_COUNT, "item id out of range");
     CHECK(!is_mail(item), "holds a Mail item");
     CHECK(gen3_pkm_get(p, Gen3FieldMail) == GEN3_MAIL_NONE, "mail index != 0xFF");
-    /* D8 cross-check: the trade refuses a game-valid Pokemon only for an item Ruby lacks (the
-     * ENIGMA BERRY, or ITEMS_COUNT and up), with D8's numbers, not the header's */
+    /* Cross-check: the trade refuses a game-valid Pokemon only for an item Ruby lacks (the
+     * ENIGMA BERRY, or ITEMS_COUNT and up), with the numbers written out, not the header's */
     bool ruby_lacks = item == 175 || item >= 349;
     CHECK(
         gen3_trade_offer_check(p) == (ruby_lacks ? Gen3RefuseItem : Gen3RefuseNone),
-        "offer check (D8)");
+        "offer check");
     /* The offer traits an FRLG partner checks, with the numbers, not the header's: NonKanto past
      * #151 (or no national number), Unfateful for MEW (151) or DEOXYS (386) without the bit */
     uint16_t national = gen3_national_from_internal(gen3_pkm_get(p, Gen3FieldSpecies));
@@ -558,7 +558,7 @@ static bool step(Gen3Editor* ed) {
         if(same) CHECK(ok, "set_species refused the current species");
         if(ok && !same) {
             CHECK(gen3_edit_national(ed) == national, "set_species species");
-            /* D5, amended by D7: the player's OT once known, else the one it had */
+            /* A new species: the player's OT once known, else the one it had */
             if(ed->has_trainer)
                 CHECK(gen3_edit_ot_is_trainer(ed), "set_species without the player's OT");
             else

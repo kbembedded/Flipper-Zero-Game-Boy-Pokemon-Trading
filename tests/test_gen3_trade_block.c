@@ -7,7 +7,7 @@
 #include <src/gen3/gen3_link_player.h>
 #include <src/gen3/gen3_trade_block.h>
 
-_Static_assert(GEN3_RUBY_ITEMS_COUNT == 349 && GEN3_ITEM_ENIGMA_BERRY == 175, "D8");
+_Static_assert(GEN3_RUBY_ITEMS_COUNT == 349 && GEN3_ITEM_ENIGMA_BERRY == 175, "Ruby's item rules");
 
 TEST(test_link_type_values) {
     ASSERT_EQ(GEN3_LINKTYPE_TRADE, 0x1111);
@@ -157,7 +157,7 @@ TEST(test_offer_check) {
     ASSERT_EQ(offer_with(Gen3FieldHeldItem, 348), Gen3RefuseNone);
     ASSERT_EQ(offer_with(Gen3FieldHeldItem, 120), Gen3RefuseNone);
     ASSERT_EQ(offer_with(Gen3FieldHeldItem, 133), Gen3RefuseNone);
-    /* O3: D8's ranges stand as written. Ruby holds any item below ITEMS_COUNT, a key item or an
+    /* These ranges stand as written. Ruby holds any item below ITEMS_COUNT, a key item or an
      * HM included; only the editor keeps to holdable ones. */
     ASSERT_EQ(offer_with(Gen3FieldHeldItem, 265), Gen3RefuseNone); /* a key item */
     ASSERT_EQ(offer_with(Gen3FieldHeldItem, 339), Gen3RefuseNone); /* HM01 */

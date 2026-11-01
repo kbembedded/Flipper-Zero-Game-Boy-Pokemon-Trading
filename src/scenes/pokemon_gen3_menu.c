@@ -43,10 +43,10 @@ static void gen3_menu_item_callback(void* context, uint32_t index) {
 /* The Link Test session and its view outlive the Link Test scene while the "Stop link?" dialog
  * is up, so that "Stay" returns to the running link. Every way out of the Link Test for good
  * (Back while not in the Cable Club, or "Stop") comes back to this menu, so it ends here. A trade
- * session and its trade screen live on behind every Gen III scene while it runs (D1), and end
+ * session and its trade screen live on behind every Gen III scene while it runs, and end
  * here too once it doesn't (not started yet, or stopped: the GBA left, "Stop link?", End anyway),
- * or with End trade or Back while no GBA is linked (D9). The sync stays until the app exits,
- * restarted (it keeps the block on a traded-away Pokemon, O2). Call with neither view shown,
+ * or with End trade or Back while no GBA is linked. The sync stays until the app exits,
+ * restarted (it keeps the block on a traded-away Pokemon). Call with neither view shown,
  * and for a running trade session only on gen3_trade_end_decide's Stop (the sync has
  * every received Pokemon). */
 static void gen3_menu_end_session(PokemonFap* pokemon_fap) {
@@ -92,7 +92,7 @@ static void gen3_menu_trade_alloc(PokemonFap* pokemon_fap) {
     pokemon_fap->gen3_trade_ended = false;
 }
 
-/* The items for the session as it is now: End trade while a trade session runs (D9), Link Test
+/* The items for the session as it is now: End trade while a trade session runs, Link Test
  * and Cartridge only while none does (TIM2 runs one link at a time, and Cartridge closes this
  * app). */
 void gen3_menu_rebuild(PokemonFap* pokemon_fap) {
@@ -171,7 +171,7 @@ void pokemon_scene_gen3_menu_on_enter(void* context) {
             gen3_species_select_alloc(pokemon_fap->view_dispatcher, AppViewGen3SpeciesSelect);
     }
 
-    /* A trade session runs on behind this menu (D1) */
+    /* A trade session runs on behind this menu */
     const bool trading = gen3_session_trading(pokemon_fap->gen3_session);
 
     gen3_menu_rebuild(pokemon_fap);
@@ -182,7 +182,7 @@ void pokemon_scene_gen3_menu_on_enter(void* context) {
 }
 
 /* Edit Pokemon or Load .pk3 (scene): with a trade session running, the club holds the offer
- * first (O1); if it can't (a trade is pending, or a pickup is being retried), the trade screen
+ * first; if it can't (a trade is pending, or a pickup is being retried), the trade screen
  * says why instead. begin_edit and the scene switch share this handler, so no tick runs between
  * them. */
 static void gen3_menu_open_editor(PokemonFap* pokemon_fap, uint32_t scene) {
@@ -195,7 +195,7 @@ static void gen3_menu_open_editor(PokemonFap* pokemon_fap, uint32_t scene) {
     }
 }
 
-/* End trade, or Back, while a trade session may run (D9, D10). With the GBA linked or saving, or a
+/* End trade, or Back, while a trade session may run. With the GBA linked or saving, or a
  * received Pokemon waiting for the SD card, Gen3TradeEnd opens and this returns true. false: stop
  * and free the session now (Stop: no GBA is linked and the editor has every received Pokemon), or
  * it has stopped already (Menu). */
@@ -305,7 +305,7 @@ bool pokemon_scene_gen3_menu_on_event(void* context, SceneManagerEvent event) {
             consumed = true;
         } else if(event.event == PokemonSceneGen3NatDex) {
             if(pokemon_fap->gen3_national_dex) {
-                /* Off at once: only turning it on needs a confirm (D10) */
+                /* Off at once: only turning it on needs a confirm */
                 pokemon_fap->gen3_national_dex = false;
                 if(pokemon_fap->gen3_session) {
                     gen3_session_set_national_dex(pokemon_fap->gen3_session, false);
@@ -332,10 +332,10 @@ bool pokemon_scene_gen3_menu_on_event(void* context, SceneManagerEvent event) {
             gen3_menu_show_menu(pokemon_fap);
             consumed = true;
         } else if(gen3_session_trading(pokemon_fap->gen3_session)) {
-            /* With the GBA linked, Back asks first, as End trade does (D9, D10) */
+            /* With the GBA linked, Back asks first, as End trade does */
             consumed = gen3_menu_end_dialog(pokemon_fap);
         }
-        /* Not consumed: to the main menu, without a session (D1) */
+        /* Not consumed: to the main menu, without a session */
         if(!consumed) gen3_menu_end_session(pokemon_fap);
     }
 

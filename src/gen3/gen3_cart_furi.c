@@ -34,7 +34,7 @@
 /* Connect: how often the worker reads the multiboot sender's progress */
 #define GEN3_CART_MB_POLL_MS 20u
 /* Connect: polls in a row that must find SI high, while the sender waits for the GBA, before the
- * MultiPlay wire gives way to the Normal wire (plan 6 D6): a jiggled GBA cable doesn't switch */
+ * MultiPlay wire gives way to the Normal wire: a jiggled GBA cable doesn't switch */
 #define GEN3_CART_WIRE_POLLS 2u
 /* Connect: an `mb wait` log line this often while the sender waits for the GBA */
 #define GEN3_CART_MB_WAIT_LOG_MS 5000u
@@ -54,7 +54,7 @@ _Static_assert(GEN3_CART_GAP_TICKS <= UINT8_MAX, "gap_left counts the idle ticks
  * M27). 1 gates it too, as the helper's phase always is. */
 #define GEN3_CART_MB_GATED 0
 /* 1: every Connect starts on the Normal wire, whatever SI reads (a GBC cable whose SI reads low,
- * so that Connect stays on `wire multi`). 0, the default: the cable decides (plan 6 D6). */
+ * so that Connect stays on `wire multi`). 0, the default: the cable decides. */
 #define GEN3_CART_FORCE_NORMAL 0
 
 typedef enum {
@@ -447,7 +447,7 @@ static bool cart_mb_start(Gen3CartSession* s, MlinkWire wire, uint32_t len) {
     return mlink_hw_start_wire(s->hw, MlinkModeStream, wire, gen3_cart_frame, s, &first);
 }
 
-/* Starts the driver on the wire the cable calls for (plan 6 D6): MultiPlay while SI reads low,
+/* Starts the driver on the wire the cable calls for: MultiPlay while SI reads low,
  * Normal otherwise (always with GEN3_CART_FORCE_NORMAL), with the sender's first frame */
 static Gen3CartResult cart_driver_start(Gen3CartSession* s, uint32_t len) {
     cart_progress(s, Gen3CartStepMbWait, 0, 0);
@@ -583,7 +583,7 @@ static Gen3CartResult cart_job_connect(Gen3CartSession* s) {
     }
 
     /* The pump takes the link over; the buffer is the jobs' sector buffer from here on. On the
-     * Normal wire the ready gate applies from now (D3): the helper says when it is ready. */
+     * Normal wire the ready gate applies from now: the helper says when it is ready. */
     if(s->wire == MlinkWireNormal) {
         mlink_hw_set_normal_gate(s->hw, true);
         if(!GEN3_CART_MB_GATED) CART_LOG(s, "wire %s", "normal gated (helper)");

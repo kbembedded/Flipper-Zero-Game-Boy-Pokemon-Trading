@@ -893,7 +893,7 @@ TEST(test_mb_junk_wait) {
     ASSERT_TRUE(max_us > 230000u && max_us < 240000u + MLINK_TICK_US);
 }
 
-/* The Normal-mode vector of multiboot-and-save.md §7.2 (plan 6), computed in Python from
+/* The Normal-mode vector of multiboot-and-save.md §7.2, computed in Python from
  * GBATEK's formulas, apart from this code: Normal's CRC init, polynomial and data key, with the
  * seed, hh and the final CRC's form as on MultiPlay. */
 TEST(test_mb_normal_vector) {
@@ -1167,7 +1167,7 @@ TEST(test_mb_normal_palette_notready_is_busy) {
     ASSERT_EQ(st.palette_busy, (GEN3_MB_PALETTE_US + nr_us - 1u) / nr_us);
 }
 
-/* D6 (plan 6): MultiPlay stays while SI reads low, or once the GBA answered; SI high in Wait or
+/* MultiPlay stays while SI reads low, or once the GBA answered; SI high in Wait or
  * Detect moves to Normal, which stays. */
 TEST(test_mb_wire_next) {
     ASSERT_EQ(gen3_mb_wire_next(MlinkWireMulti, true, Gen3MbPhaseDetect), MlinkWireMulti);

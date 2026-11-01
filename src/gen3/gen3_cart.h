@@ -11,7 +11,7 @@
 #include <src/gen3/gen3_save.h>
 
 /* The cartridge jobs: connect, back up the save, browse and edit it in a working copy, write it
- * back, restore a backup, and copy the ROM (plan 5 D4-D8), on top of the helper client
+ * back, restore a backup, and copy the ROM, on top of the helper client
  * (gen3_hcli.h) and an SD store. Pure C, no heap, no file-scope state. Not ISR code: a job blocks
  * in the client's transport, so the jobs run on a worker thread with a 2 KB stack, of which the
  * store needs about 1 KB. So the big working arrays are Gen3Cart fields, and no job keeps more
@@ -255,7 +255,7 @@ Gen3CartResult gen3_cart_backup(Gen3Cart* c, const char* stamp);
  * current backup of a save the game loads. */
 Gen3CartResult gen3_cart_discard(Gen3Cart* c);
 
-/* Writes the edits back (multiboot-and-save.md §5.8, plan 5 D4): the working copy's 14 sectors,
+/* Writes the edits back (multiboot-and-save.md §5.8): the working copy's 14 sectors,
  * each with the counter N + 1 and an edited one with its checksum, go to the slot the game doesn't
  * load, edited ones uploaded and the rest copied on the cart; only the last step, a commit byte per
  * sector, makes that slot whole, and so the one the game loads. Then each of them is checked on the
@@ -299,7 +299,7 @@ Gen3CartResult gen3_cart_restore_check(
     const char* name,
     Gen3SaveTrainer* trainer,
     bool* has_trainer);
-/* Puts the backup's save on the cart by gen3_cart_write's path (plan 5 D6), every sector uploaded
+/* Puts the backup's save on the cart by gen3_cart_write's path, every sector uploaded
  * from the file, each with the bytes past its section zeroed and the plan's counter; the file
  * itself is never written. A cart whose save is strict and not padded keeps it as the fallback:
  * the backup's goes to the slot the game doesn't load, with the counter N + 1. A cart with no save
@@ -461,7 +461,7 @@ void gen3_cart_rom_name(const Gen3Cart* c, char out[GEN3_CART_NAME_MAX]); /* "ro
  * cart left (the same code and version, another header or size) isn't found, and a copy starts
  * from 0. */
 bool gen3_cart_rom_part(Gen3Cart* c, uint32_t* done_bytes);
-/* Copies the ROM in GEN3_CART_ROM_REGION regions (plan 5 D8): ROM_READs of 2048 halfwords
+/* Copies the ROM in GEN3_CART_ROM_REGION regions: ROM_READs of 2048 halfwords
  * appended to the .part, then the region's ROM_CRC32 and an SD read-back must both equal the CRC
  * of what came; a region that differs is read once more, then VerifyFailed. The .part keeps only
  * checked regions: any failure, cancel included, cuts it back to the last one. resume starts at

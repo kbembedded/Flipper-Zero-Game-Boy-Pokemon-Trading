@@ -15,7 +15,7 @@
  * relink for the trade menu, its party exchange, the trade menu with the Flipper as the arbiter,
  * the trade and the GBA's link save, the EEBB that sends the GBA back to the room when the
  * Flipper's Pokemon changes (docs/gen3/link-protocol-trade.md §B1-B7), and walking the GBA out of
- * the room when the app asks (D9). Pure C, no heap; gen3_club_frame runs in the link frame ISR. */
+ * the room when the app asks. Pure C, no heap; gen3_club_frame runs in the link frame ISR. */
 
 #define GEN3_CLUB_CARD_DELAY_BURSTS 10 /* idle bursts between both player blocks and 0xCCCC (§A6, U3 margin >= 5) */
 /* Idle bursts before a party-exchange CCCC (§B2.2). Round 1's follows both LinkPlayerBlocks: the
@@ -50,7 +50,7 @@
  * glitched size header still can't hold the arbiter forever. */
 #define GEN3_CLUB_BLOCK_GAP_BURSTS    GEN3_CLUB_REPLY_DELAY_BURSTS
 #define GEN3_CLUB_BLOCK_HEADER_BURSTS 3
-/* D9: the GBA CAFEs (one per GBA frame) the club sees in a room session before its CAFE 0017.
+/* The GBA CAFEs (one per GBA frame) the club sees in a room session before its CAFE 0017.
  * After a 0x1111 relink the GBA fades in with its controls locked for about 23-24 GBA frames from
  * its first CAFE: the FADE_FROM_BLACK palette fade and its 5 finishing calls, then the weather
  * update and task_mpl_807DD60 case 2 (field_weather.c:497-501, field_fadetransition.c:122-128).
@@ -90,7 +90,7 @@ typedef enum {
     Gen3ClubErrorUnexpected = 4, /* a link type the club didn't expect at this point */
 } Gen3ClubError;
 
-/* The arbiter's side of the trade menu (§B3.3, D4), per link session. */
+/* The arbiter's side of the trade menu (§B3.3), per link session. */
 typedef enum {
     Gen3ClubMenuIdle, /* no GBA request pending */
     Gen3ClubMenuOffered, /* DDDD sent: the GBA is confirming */
@@ -98,14 +98,14 @@ typedef enum {
     Gen3ClubMenuLeaving, /* EEBB sent */
 } Gen3ClubMenu;
 
-/* How the latest pending trade ended (D5, §B5.3), by the GBA 2FFEs the club had answered. */
+/* How the latest pending trade ended (§B5.3), by the GBA 2FFEs the club had answered. */
 typedef enum {
     Gen3TradeResultNone,
     Gen3TradeResultDone, /* sync 3 seen */
     Gen3TradeResultCanceled, /* lost before the club answered sync 1: nothing written on the GBA */
     Gen3TradeResultRolledBack, /* lost after the sync-1 answer, before the sync-2 answer: the GBA
                                   reports a corrupt save and loads the one from before the trade */
-    Gen3TradeResultAssumed, /* lost after the sync-2 answer, before sync 3: taken as done (D5) */
+    Gen3TradeResultAssumed, /* lost after the sync-2 answer, before sync 3: taken as done */
 } Gen3TradeResult;
 
 /* name must outlive the club (a string literal): the club keeps a copy of the config. */
@@ -136,11 +136,11 @@ typedef struct {
     Gen3ClubMenu menu; /* per link session: Idle until the trade menu */
     uint8_t gba_slot; /* arg of the GBA's latest AABB that got DDDD: the GBA mon offered */
     /* Reason the latest AABB got DDEE; None after a DDDD, or for a DDEE because the GBA was shown
-     * no Flipper Pokemon (R8) */
+     * no Flipper Pokemon */
     Gen3Refuse refused;
     bool trade_pending; /* CCDD sent; until done or lost */
     uint8_t save_syncs; /* GBA 2FFEs answered in this link save, 0..3; zeroed at CCDD */
-    bool save_window; /* sync 1 answered, sync 3 not yet seen: don't stop the link (D10) */
+    bool save_window; /* sync 1 answered, sync 3 not yet seen: don't stop the link */
     Gen3TradeResult last_result; /* how the latest pending trade ended; None before any */
     /* Menu: the GBA's view of the Flipper's party is out of date (no usable offer, offer
      * changed, or a checksum error in this 0x1122 session), the app is editing, or a leave is
@@ -150,7 +150,7 @@ typedef struct {
     /* Room via 0x1111: the GBA's avatar is on its seat; it must step off and back on. Until the
      * GBA's next CAFE 0016 or a 0x1133 linkup */
     bool resit_needed;
-    bool editing; /* gen3_club_set_editing (O1) */
+    bool editing; /* gen3_club_set_editing */
     bool leaving; /* requested, not done yet */
     bool left; /* the GBA walked out and closed the link after a request, or no GBA was linked */
     /* The GBA closed its link to open the next one at once (its 5FFF answered in Room for the
@@ -194,7 +194,7 @@ struct Gen3Club {
     bool close_answered; /* {5FFF} queued this session */
     bool exit_answer_due; /* the GBA sent CAFE 0017: answer after its next command */
     bool gba_exit_seen; /* the GBA sent CAFE 0017 this session */
-    bool exit_sent; /* the Flipper's CAFE 0017 queued this session (an answer or D9's) */
+    bool exit_sent; /* the Flipper's CAFE 0017 queued this session (an answer or a leave's) */
     uint8_t room_cafes; /* the GBA's CAFEs this session in Room, up to UINT8_MAX */
     uint8_t card_delay; /* idle bursts to wait before 0xCCCC */
     uint8_t idle_bursts;
@@ -210,7 +210,7 @@ struct Gen3Club {
     uint8_t round_delay; /* before the CCCC of rounds 2..5 */
     /* gen3_club_set_round_delays was called: the GBA's game no longer picks the delays */
     bool delays_fixed;
-    uint8_t round_block[GEN3_TRADE_ROUND_MAX]; /* the Flipper's block of this round (R2) */
+    uint8_t round_block[GEN3_TRADE_ROUND_MAX]; /* the Flipper's block of this round */
     /* Trade menu, per session (§B3) */
     Gen3ClubMenu menu;
     bool reply_due; /* the GBA's block below awaits its one reply */
@@ -218,13 +218,13 @@ struct Gen3Club {
     uint16_t gba_code, gba_arg; /* that block's words 0 and 1 */
     uint8_t gba_slot;
     Gen3Refuse refused;
-    /* R8: round 1 showed the GBA a Flipper Pokemon (party_mon had one); else its partner column
+    /* Round 1 showed the GBA a Flipper Pokemon (party_mon had one); else its partner column
      * is empty */
     bool party_shown;
-    bool tainted; /* a checksum error was counted in this link session (D4) */
+    bool tainted; /* a checksum error was counted in this link session */
     uint8_t eebb_bursts; /* Leaving: bursts since the latest EEBB went out, up to the retry */
-    Gen3Pkm scratch; /* the GBA mon of the latest AABB, decrypted (R2) */
-    /* Trade context: survives relinks (D3) */
+    Gen3Pkm scratch; /* the GBA mon of the latest AABB, decrypted */
+    /* Trade context: survives relinks */
     /* gen3_partner_rules of the GBA's latest parsed LinkPlayerBlock, any link type; {Unknown,
      * true} from init. Disconnects and bad blocks keep them */
     Gen3PartnerRules partner_rules;
@@ -246,12 +246,12 @@ struct Gen3Club {
     Gen3TradeResult last_result;
     uint8_t received[GEN3_PARTY_SIZE]; /* the latest finalized trade's Pokemon, game form */
     bool national_dex; /* lp_field_2 of the Flipper's 0x1144 block (§B4.5); never reset */
-    /* The Flipper's EEBB sent the GBA toward the room: its next LinkPlayerBlock is 0x1111 (§B6.3,
-     * D2). Consumed by that block, whatever its type */
+    /* The Flipper's EEBB sent the GBA toward the room: its next LinkPlayerBlock is 0x1111 (§B6.3).
+     * Consumed by that block, whatever its type */
     bool return_due;
     bool resit_needed;
-    bool editing; /* O1: app state, like the offer */
-    /* D9: app state, like the offer */
+    bool editing; /* app state, like the offer */
+    /* App state, like the offer */
     bool leaving;
     bool left;
     /* The GBA closed the link to open the next one at once (closes_for_relink): from that
@@ -260,7 +260,7 @@ struct Gen3Club {
     uint16_t relink_wait;
 };
 
-/* The one place that decides which game the Flipper claims to be (D11). Fills the Flipper's
+/* The one place that decides which game the Flipper claims to be. Fills the Flipper's
  * LinkPlayer for a session of link_type, and its trainer card, by the game of partner: the GBA's
  * LinkPlayer of this session, whatever its link type. NULL, or zeros after a bad block or a reset,
  * read as an Unknown game. Every claim has name cfg->name (7 chars, EOS-filled to 11), trainer_id
@@ -293,7 +293,7 @@ void gen3_club_frame(Gen3Club* club, const MlinkRx* rx, MlinkTx* tx);
 void gen3_club_status(const Gen3Club* club, Gen3ClubStatus* out);
 /* Sets (game != NULL) or clears the offer: the Flipper's one party Pokemon, game form, with its
  * gen3_offer_traits (ignored, and 0, when game is NULL). false and nothing changed if trades_seen
- * != the club's trades_done (D6): an app that hasn't picked up the latest trade can't overwrite
+ * != the club's trades_done: an app that hasn't picked up the latest trade can't overwrite
  * the received Pokemon. Unchecked: the app sets it in a PRIMASK section, where nothing may
  * decrypt, so it computes the traits beforehand and offers only a Pokemon that passes
  * gen3_trade_offer_check. Copies the 100 bytes and two scalars. The club sits, and shows the
@@ -306,12 +306,12 @@ bool gen3_club_set_offer_traits(
 /* gen3_club_set_offer_traits with GEN3_OFFER_TRAITS_UNKNOWN: it decrypts nothing either. The offer
  * is then usable for an R/S, Emerald or unknown partner, and never for FRLG. */
 bool gen3_club_set_offer(Gen3Club* club, const uint8_t* game, uint32_t trades_seen);
-/* O1: the app is editing the offer. While set, offer_stale is true (EEBB to every GBA block in
+/* The app is editing the offer. While set, offer_stale is true (EEBB to every GBA block in
  * Menu, and an unsolicited EEBB), and the club never sits, nor sends DDDD or CCDD. Setting it
  * fails (false, nothing changed) while trade_pending, or when trades_seen != trades_done (a
  * received Pokemon the app hasn't seen). Clearing it always succeeds (trades_seen unused). */
 bool gen3_club_set_editing(Gen3Club* club, bool on, uint32_t trades_seen);
-/* Ask the GBA to walk out (D9); safe in any phase. Done when status.left.
+/* Ask the GBA to walk out; safe in any phase. Done when status.left.
  * - No GBA linked (Waiting, and no relink due): left at once.
  * - Room: one CAFE 0017 once the GBA's CAFEs run (GEN3_CLUB_LEAVE_DELAY_CAFES), unless the GBA's
  *   own 0017 has its answer; the GBA's later 0017 gets none. The club no longer sits.
@@ -321,7 +321,7 @@ bool gen3_club_set_editing(Gen3Club* club, bool on, uint32_t trades_seen);
  * or a pulled cable), left is set and leaving cleared. left is sticky: from then on the club never
  * sits, so a GBA that walks back into the Cable Club can't start a trade. */
 void gen3_club_request_leave(Gen3Club* club);
-/* National Dex for the GBA (D10, §B4.5): while on, the Flipper's 0x1144 block carries lp_field_2
+/* National Dex for the GBA (§B4.5): while on, the Flipper's 0x1144 block carries lp_field_2
  * 0x8000. Off after init; the club never changes it. */
 void gen3_club_set_national_dex(Gen3Club* club, bool on);
 /* The Pokemon of the latest finalized trade (game form; zeros before any) and trades_done

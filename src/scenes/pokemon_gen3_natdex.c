@@ -6,7 +6,7 @@
 
 #include <src/gen3/gen3_session_furi.h>
 
-/* "Unlock National Dex?" (D10): the confirm to turn the per-run setting on. Turning it off needs
+/* "Unlock National Dex?": the confirm to turn the per-run setting on. Turning it off needs
  * none (the Gen III menu does it at once). The next 0x1144 block the Flipper sends carries the
  * flag, and a Ruby or Sapphire GBA keeps its National Dex for good. FireRed/LeafGreen never read
  * it (fr: trade_scene.c: TryEnableNationalDexFromLinkPartner has Ruby's check commented out),

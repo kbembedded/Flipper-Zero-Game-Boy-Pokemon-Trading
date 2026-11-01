@@ -20,7 +20,7 @@
 #define GEN3_EDIT_ROW_USE_OT  PokemonSceneNum
 #define GEN3_EDIT_ROW_FATEFUL (PokemonSceneNum + 1)
 
-/* The "Shiny lost" notice from "OT: use <NAME>" is up over this menu (D7) */
+/* The "Shiny lost" notice from "OT: use <NAME>" is up over this menu */
 static bool gen3_edit_notice_up = false;
 
 /* name_buf holds the species name too */
@@ -152,7 +152,7 @@ void pokemon_scene_gen3_edit_on_enter(void* context) {
     snprintf(buf, sizeof(buf), "OT SID:         %05u", (unsigned)(uint16_t)(ot_id >> 16));
     gen3_edit_add(pokemon_fap, buf, PokemonSceneGen3Sid);
 
-    /* D7: the GBA player's OT for a Pokemon that has another one. Its index is no scene id. */
+    /* The GBA player's OT for a Pokemon that has another one. Its index is no scene id. */
     const Gen3Trainer* trainer = gen3_edit_trainer(ed);
     if(trainer && !gen3_edit_ot_is_trainer(ed)) {
         gen3_text_decode(trainer->name, GEN3_OT_NAME_LEN, name_buf, sizeof(name_buf));
@@ -219,7 +219,7 @@ bool pokemon_scene_gen3_edit_on_event(void* context, SceneManagerEvent event) {
         alias = PokemonSceneGen3Preset;
         break;
     case GEN3_EDIT_ROW_USE_OT:
-        /* "OT: use <NAME>" (D7): the row goes once applied; keep the highlight next to it */
+        /* "OT: use <NAME>": the row goes once applied; keep the highlight next to it */
         scene_manager_set_scene_state(
             pokemon_fap->scene_manager, PokemonSceneGen3Edit, PokemonSceneGen3Sid);
         if(gen3_edit_use_trainer_ot(pokemon_fap->gen3_editor) == Gen3UseTrainerShinyLost) {

@@ -35,7 +35,7 @@ MlinkCable gen3_session_check_cable(Gen3Session* s);
  * false. Already running: true for a Link Test run, false (nothing changed) for a trade session. */
 bool gen3_session_start(Gen3Session* s); /* false if cable reversed or TIM2 busy */
 
-/* As gen3_session_start, but the club runs with trading on (GEN3_TEST_TRAINER_* identity, D7) and
+/* As gen3_session_start, but the club runs with trading on (GEN3_TEST_TRAINER_* identity) and
  * the National Dex flag set before the driver starts. No offer yet: the app tick publishes one.
  * Already running: true for a trade session, false (nothing changed) for a Link Test run, so a
  * Link Test session never passes for a trade session. */
@@ -64,7 +64,7 @@ void gen3_session_status(Gen3Session* s, Gen3ClubStatus* out, bool* log_ok, bool
  * nothing, so both come from the app thread: publish only a Pokemon that passes
  * gen3_trade_offer_check, with the traits of its decrypted form (gen3_trade_sync_poll does both).
  * The club sits and shows it only while the GBA's rules take those traits. false and nothing
- * changed if trades_seen isn't the club's trades_done (D6), or if the session isn't running (the
+ * changed if trades_seen isn't the club's trades_done, or if the session isn't running (the
  * next start's club wouldn't have it). */
 bool gen3_session_set_offer_traits(
     Gen3Session* s,
@@ -74,14 +74,14 @@ bool gen3_session_set_offer_traits(
 /* gen3_club_get_received: the latest finalized trade's Pokemon (game form; zeros before any) and
  * trades_done (may be NULL). After a stop: the stopped run's; before the first start: zeros, 0. */
 void gen3_session_get_received(Gen3Session* s, uint8_t out[GEN3_PARTY_SIZE], uint32_t* trades_done);
-/* gen3_club_set_editing (O1): setting it fails (false, nothing changed) while a trade is pending
+/* gen3_club_set_editing: setting it fails (false, nothing changed) while a trade is pending
  * or when trades_seen isn't the club's trades_done; clearing it always succeeds. Not running:
  * true, and nothing done. */
 bool gen3_session_set_editing(Gen3Session* s, bool on, uint32_t trades_seen);
-/* gen3_club_set_national_dex (D10). Any time: each start sets it again, from
+/* gen3_club_set_national_dex. Any time: each start sets it again, from
  * gen3_session_start_trade's argument (off for gen3_session_start). */
 void gen3_session_set_national_dex(Gen3Session* s, bool on);
-/* gen3_club_request_leave (D9): done once status.left. left is sticky, and can come while
+/* gen3_club_request_leave: done once status.left. left is sticky, and can come while
  * trade_pending (a 0x1144 relink that never came): it never means "trade resolved". Does nothing
  * unless running. */
 void gen3_session_request_leave(Gen3Session* s);

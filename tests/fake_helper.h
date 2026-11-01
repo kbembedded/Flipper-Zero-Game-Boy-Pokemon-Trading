@@ -25,7 +25,7 @@
  * MLINK_NO_DATA).
  *
  * Normal: the helper as the slave of 32-bit Normal-mode transfers, behind the Flipper's
- * Normal-wire driver (plan 6 D3, D5). Each slot the Flipper sends is either delivered, a word as
+ * Normal-wire driver. Each slot the Flipper sends is either delivered, a word as
  * on MultiPlay (the one-transfer delay, hp_step), or not ready: nothing is clocked, the helper
  * isn't stepped, and the driver reports the slot's timeout and not-ready bits with MLINK_NO_DATA.
  * There is no HP_BUSY: the command runs right after the packet's last word, and until its modelled

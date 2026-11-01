@@ -69,7 +69,7 @@ TEST(test_club_other_room) {
     ASSERT_EQ(b.sent_cccc, 0);
     ASSERT_EQ(fake_ruby_phase(&b.ruby), FakeRubyClosed);
     ASSERT_TRUE(fake_ruby_error(&b.ruby) == NULL);
-    /* D2: any other room gets a 0x1133 block */
+    /* Any other room gets a 0x1133 block */
     ASSERT_EQ(fake_ruby_partner(&b.ruby)->link_type, GEN3_LINKTYPE_TRADE_SETUP);
     st = club_status(&b);
     ASSERT_EQ(st.phase, Gen3ClubPhaseWaiting);
@@ -77,7 +77,7 @@ TEST(test_club_other_room) {
 }
 
 TEST(test_club_link_test_refuses_trade_types) {
-    /* D2: a Link Test (trading false) answers every Part B link type with a 0x1133 block, so the
+    /* A Link Test (trading false) answers every Part B link type with a 0x1133 block, so the
      * GBA stalls before anything happens, and stops with Error/Unexpected. */
     static const uint32_t types[] = {
         GEN3_LINKTYPE_TRADE, GEN3_LINKTYPE_TRADE_CONNECTING, GEN3_LINKTYPE_TRADE_DISCONNECTED};
@@ -293,7 +293,7 @@ TEST(test_club_checksum_error) {
 }
 
 TEST(test_club_checksum_error_mid_block) {
-    /* Plan 1's Review Focus 3: a two-sided glitch while our trainer card streams. G errors and
+    /* A two-sided glitch while our trainer card streams. G errors and
      * closes; the Disconnected reset flushes the rest of the card, so none of it goes to a gone
      * GBA. */
     Bench b;
@@ -425,7 +425,7 @@ TEST(test_club_checksum_one_sided_leaving) {
 }
 
 TEST(test_club_own_block_after_gba) {
-    /* D2: the Flipper's LinkPlayerBlock follows the GBA's, so it can carry the GBA's link type. */
+    /* The Flipper's LinkPlayerBlock follows the GBA's, so it can carry the GBA's link type. */
     Bench b;
     bench_init(&b, GEN3_LINKTYPE_TRADE_SETUP);
     fake_ruby_open_link(&b.ruby);

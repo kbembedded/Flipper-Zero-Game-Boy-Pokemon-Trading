@@ -119,7 +119,7 @@ static void ed_clear_move(Gen3Pkm* p, int slot) {
     gen3_pkm_set(p, Gen3FieldPpBonuses, ups & ~(3u << (2 * slot)));
 }
 
-/* D5, amended by D7: a fresh Pokemon (as CreateBoxMon) with the trainer's OT once one is set,
+/* A fresh Pokemon (as CreateBoxMon) with the trainer's OT once one is set,
  * else the current Pokemon's (name bytes, OT ID, OT gender); the preset is applied. The name and
  * moves are read from the bulk file first: false, with the editor unchanged, if either read
  * fails. */
@@ -466,7 +466,7 @@ bool gen3_edit_set_traits(Gen3Editor* ed, const Gen3Traits* want) {
     return ok;
 }
 
-/* D7: the trainer's OT name bytes and gender, then their OT ID through ed_set_ot_id, which keeps
+/* The trainer's OT name bytes and gender, then their OT ID through ed_set_ot_id, which keeps
  * shininess where it can and ends with ed_commit. Leaves pristine alone. */
 static Gen3OtIdResult ed_use_trainer_ot(Gen3Editor* ed) {
     gen3_pkm_set_ot_name_raw(&ed->pkm, ed->trainer.name);
@@ -479,7 +479,7 @@ void gen3_edit_set_trainer(Gen3Editor* ed, const Gen3Trainer* t) {
     /* The OT gender bit's value, so gen3_edit_ot_is_trainer can match it */
     ed->trainer.gender = t->gender != 0;
     ed->has_trainer = true;
-    /* The untouched default becomes the player's own, and is still the default (D7) */
+    /* The untouched default becomes the player's own, and is still the default */
     if(ed->pristine) ed_use_trainer_ot(ed);
 }
 

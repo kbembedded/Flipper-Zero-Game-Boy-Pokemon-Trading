@@ -1399,11 +1399,11 @@ Header, Data, Handshake, Length and Crc.
 true while it runs). The tick stays 1073 µs, so throughput equals MultiPlay's.
 SD is left alone, in analog mode.
 
-- **The word (D2).** The Flipper sends `(uint32_t)tx.hi[t] << 16 | tx.word[t]`
+- **The word.** The Flipper sends `(uint32_t)tx.hi[t] << 16 | tx.word[t]`
   MSB first and reports the reply's **high** half as `rx.word[t]`. The driver
   zeroes `next.hi[]` before every frame callback, so only multiboot's data words
   set a high half. The helper protocol uses the same convention.
-- **Ready, stall, not ready (D3), when gated.** At each tick the driver reads
+- **Ready, stall, not ready, when gated.** At each tick the driver reads
   SI. SI high: the slave isn't ready; the slot waits for the next tick, up to
   `MLINK_NORMAL_STALL_TICKS` (16). After that the slot is *not ready*:
   `notready_mask` and `timeout_mask` bit set, word `MLINK_NO_DATA`, nothing
@@ -1426,7 +1426,7 @@ SD is left alone, in analog mode.
 - `rx.ticks` is the frame's time in ticks; callers multiply by `MLINK_TICK_US`.
   On the MultiPlay wire it is `max(count, 1)`, so the cores' timing there is
   unchanged.
-- **Not ready is BUSY in the pump (D4).** A slave that runs a command can't
+- **Not ready is BUSY in the pump.** A slave that runs a command can't
   answer, so the helper sends no `0xB0B0` over this wire. `gen3_hlink` handles a
   not-ready word like a valid BUSY wherever it waits (Sending before READY,
   Waiting); in Sync it breaks the run of READYs; inside a response it is a wire

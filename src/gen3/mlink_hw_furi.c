@@ -146,7 +146,7 @@ struct MlinkHw {
     /* MultiPlay: written by the ISR at each frame start; Normal: true from the start. Read by any
      * thread. */
     volatile bool cable_ok;
-    /* Normal wire: wait for the slave's ready (SI low) before each slot (D3). Written by the app
+    /* Normal wire: wait for the slave's ready (SI low) before each slot. Written by the app
      * (mlink_hw_set_normal_gate), read by the ISR once per slot; true from mlink_hw_alloc. */
     volatile bool normal_gate;
 
@@ -417,7 +417,7 @@ static void mlink_hw_isr(void* context) {
     mlink_frame_done(hw);
 }
 
-/* Slot t of a Normal frame, on this tick. Gated (gate, D3): SI high: the slave isn't ready, and
+/* Slot t of a Normal frame, on this tick. Gated (gate): SI high: the slave isn't ready, and
  * the slot waits for the next tick, up to MLINK_NORMAL_STALL_TICKS ticks in all; on the last it is
  * reported not ready (word MLINK_NO_DATA, timeout_mask and notready_mask bit t), nothing clocked.
  * SI low: one 32-bit transfer, (hi << 16) | word out, the reply's upper half in. Ungated: the

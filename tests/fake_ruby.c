@@ -1187,7 +1187,7 @@ static bool ruby_can_hold(const Gen3Pkm* p) {
 }
 
 /* State 6: CalculateEnemyPartyCount counts slots up to the first species 0 (§B2.5); a count of
- * 0 is legal (R8). Stricter than Ruby, which shows whatever it gets: a slot that fails its
+ * 0 is legal. Stricter than Ruby, which shows whatever it gets: a slot that fails its
  * checksum (a Bad Egg on Ruby) is "bad egg", and one Ruby can't hold is "bad offer". */
 static void calculate_enemy_party_count(FakeRuby* g) {
     g->enemy_count = 0;

@@ -118,7 +118,7 @@ typedef enum {
     Gen3MbPhaseFailed,
 } Gen3MbPhase;
 
-/* The wire for the next attempt, plan 6 D6: si_low is SI as the cable check reads it now, phase
+/* The wire for the next attempt: si_low is SI as the cable check reads it now, phase
  * the sender's. MultiPlay stays while SI reads low, or once the GBA has answered (any phase but
  * Wait and Detect); SI high in Wait or Detect moves to Normal (a GBC cable, a reversed GBA cable,
  * or none); Normal stays. Pure. */
