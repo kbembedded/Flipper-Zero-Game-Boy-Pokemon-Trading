@@ -5,10 +5,25 @@
 
 #include <gui/scene_manager.h>
 
+/* The pokemon_cart FAP (Cartridge) has its own scene table; the pokemon FAP's is unchanged. */
+#ifdef POKEMON_CART_APP
+#define POKEMON_SCENE_CONFIG <src/scenes/include/pokemon_cart_scene_config.h>
+#else
+#define POKEMON_SCENE_CONFIG <src/scenes/include/pokemon_scene_config.h>
+#endif
+/* The build's dependency scan (SCons) reads #include lines without the preprocessor, so it can't
+ * follow POKEMON_SCENE_CONFIG. The compiler skips these two lines; they name both tables to the
+ * scan, so that a scene added to either rebuilds every file that includes this header, and no
+ * object keeps an old scene table or PokemonSceneNum. */
+#if 0
+#include <src/scenes/include/pokemon_scene_config.h>
+#include <src/scenes/include/pokemon_cart_scene_config.h>
+#endif
+
 // Generate scene id and total number
 #define ADD_SCENE(prefix, name, id) PokemonScene##id,
 typedef enum {
-#include "pokemon_scene_config.h"
+#include POKEMON_SCENE_CONFIG
     PokemonSceneNum,
     /* Magic number to send on an event to search through scene history and
      * change to a previous scene.
@@ -32,18 +47,18 @@ extern const SceneManagerHandlers pokemon_scene_handlers;
 
 // Generate scene on_enter handlers declaration
 #define ADD_SCENE(prefix, name, id) void prefix##_scene_##name##_on_enter(void*);
-#include "pokemon_scene_config.h"
+#include POKEMON_SCENE_CONFIG
 #undef ADD_SCENE
 
 // Generate scene on_event handlers declaration
 #define ADD_SCENE(prefix, name, id) \
     bool prefix##_scene_##name##_on_event(void* context, SceneManagerEvent event);
-#include "pokemon_scene_config.h"
+#include POKEMON_SCENE_CONFIG
 #undef ADD_SCENE
 
 // Generate scene on_exit handlers declaration
 #define ADD_SCENE(prefix, name, id) void prefix##_scene_##name##_on_exit(void* context);
-#include "pokemon_scene_config.h"
+#include POKEMON_SCENE_CONFIG
 #undef ADD_SCENE
 
 #pragma GCC diagnostic pop

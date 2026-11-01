@@ -5,6 +5,8 @@
 
 #include <src/scenes/include/pokemon_scene.h>
 
+#include <src/gen3/gen3_pins_furi.h>
+
 #include <gblink/include/gblink_pinconf.h>
 #include <gblink/include/gblink.h>
 
@@ -42,6 +44,9 @@ static void select_pins_pin_callback(VariableItem* item) {
         break;
     case 3: // CLK
         pin = PIN_CLK;
+        break;
+    case 4: // SD
+        pin = PIN_SD;
         break;
     default:
         furi_crash();
@@ -86,6 +91,12 @@ static void select_pins_rebuild_list(PokemonFap* pokemon_fap, int mode) {
     pinnum = gblink_pin_get(pokemon_fap->gblink_handle, PIN_CLK);
     variable_item_set_current_value_index(item, (mode < PINOUT_COUNT) ? 0 : pinnum);
     variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
+
+    item = variable_item_list_add(
+        pokemon_fap->variable_item_list, "SD:", (mode < PINOUT_COUNT) ? 1 : pinmax, select_pins_pin_callback, pokemon_fap);
+    pinnum = gblink_pin_get(pokemon_fap->gblink_handle, PIN_SD);
+    variable_item_set_current_value_index(item, (mode < PINOUT_COUNT) ? 0 : pinnum);
+    variable_item_set_current_value_text(item, gpio_pins[pinnum].name);
 }
 
 void pokemon_scene_select_pins_on_enter(void* context) {
@@ -107,4 +118,5 @@ void pokemon_scene_select_pins_on_exit(void* context) {
     PokemonFap* pokemon_fap = context;
 
     gblink_pinconf_save(pokemon_fap->gblink_handle);
+    gen3_sd_pin_save(pokemon_fap->gblink_handle);
 }

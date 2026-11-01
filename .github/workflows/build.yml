@@ -37,3 +37,10 @@ jobs:
           # See ufbt action docs for other output variables
           name: ${{ github.event.repository.name }}-${{ steps.build-app.outputs.suffix }}
           path: ${{ steps.build-app.outputs.fap-artifacts }}
+
+  host-tests:
+    runs-on: ubuntu-latest
+    name: 'Host unit tests'
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -C tests

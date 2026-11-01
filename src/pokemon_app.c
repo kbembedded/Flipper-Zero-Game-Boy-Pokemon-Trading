@@ -9,7 +9,13 @@
 #include <src/scenes/include/pokemon_scene.h>
 
 #include <gblink/include/gblink_pinconf.h>
+#include <src/gen3/gen3_pins_furi.h>
+#include <src/views/gen3_species_select.h>
 #include <gblink.h>
+#include <src/gen3/gen3_bulk_furi.h>
+#include <src/gen3/gen3_session_furi.h>
+#include <src/views/gen3_trade.h>
+#include <src/views/gen3_link_test.h>
 
 bool pokemon_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
@@ -24,10 +30,23 @@ bool pokemon_back_event_callback(void* context) {
     return scene_manager_handle_back_event(pokemon_fap->scene_manager);
 }
 
+/* Every 100 ms the app thread is idle: the Gen III trade tick, which returns at once unless a
+ * trade screen exists. */
+static void pokemon_tick_event_callback(void* context) {
+    furi_assert(context);
+    PokemonFap* pokemon_fap = context;
+
+    gen3_trade_tick(pokemon_fap);
+}
+
 
 PokemonFap* pokemon_alloc() {
     PokemonFap* pokemon_fap = (PokemonFap*)malloc(sizeof(PokemonFap));
     ViewDispatcher* view_dispatcher = NULL;
+
+    // Gen III editor, allocated by the Gen III menu
+    pokemon_fap->gen3_editor = NULL;
+    pokemon_fap->gen3_species_select = NULL;
 
     // View dispatcher
     view_dispatcher = view_dispatcher_alloc();
@@ -36,6 +55,16 @@ PokemonFap* pokemon_alloc() {
     view_dispatcher_set_event_callback_context(view_dispatcher, pokemon_fap);
     view_dispatcher_set_custom_event_callback(view_dispatcher, pokemon_custom_event_callback);
     view_dispatcher_set_navigation_event_callback(view_dispatcher, pokemon_back_event_callback);
+
+    // Gen III link sessions and trade, allocated by the Gen III menu; the trade tick
+    pokemon_fap->gen3_session = NULL;
+    pokemon_fap->gen3_link_test = NULL;
+    pokemon_fap->gen3_trade_view = NULL;
+    pokemon_fap->gen3_trade_sync = NULL;
+    pokemon_fap->gen3_national_dex = false;
+    pokemon_fap->gen3_trade_ended = false;
+    view_dispatcher_set_tick_event_callback(
+        view_dispatcher, pokemon_tick_event_callback, furi_ms_to_ticks(100));
     view_dispatcher_attach_to_gui(
         view_dispatcher,
         (Gui*)furi_record_open(RECORD_GUI),
@@ -68,12 +97,19 @@ PokemonFap* pokemon_alloc() {
     // Allocate gblink before going to main menu
     pokemon_fap->gblink_handle = gblink_alloc();
     gblink_pinconf_load(pokemon_fap->gblink_handle);
+    gen3_sd_pin_load(pokemon_fap->gblink_handle);
 
     return pokemon_fap;
 }
 
 void free_app(PokemonFap* pokemon_fap) {
     furi_assert(pokemon_fap);
+
+    // Gen III session (a trade session outlives the Gen III menu), before the pins it uses
+    if(pokemon_fap->gen3_session) {
+        gen3_session_free(pokemon_fap->gen3_session);
+        pokemon_fap->gen3_session = NULL;
+    }
 
     // gblink
     gblink_free(pokemon_fap->gblink_handle);
@@ -94,15 +130,43 @@ void free_app(PokemonFap* pokemon_fap) {
     view_dispatcher_remove_view(pokemon_fap->view_dispatcher, AppViewDialogEx);
     dialog_ex_free(pokemon_fap->dialog_ex);
 
+    // Gen III species picker
+    if(pokemon_fap->gen3_species_select) {
+        gen3_species_select_free(
+            pokemon_fap->view_dispatcher,
+            AppViewGen3SpeciesSelect,
+            pokemon_fap->gen3_species_select);
+    }
+
+    // Gen III Link Test screen, if the app closes while it is up
+    if(pokemon_fap->gen3_link_test) {
+        gen3_link_test_free(
+            pokemon_fap->view_dispatcher, AppViewGen3LinkTest, pokemon_fap->gen3_link_test);
+        pokemon_fap->gen3_link_test = NULL;
+    }
+
+    // Gen III trade screen and sync
+    if(pokemon_fap->gen3_trade_view) {
+        gen3_trade_view_free(
+            pokemon_fap->view_dispatcher, AppViewGen3Trade, pokemon_fap->gen3_trade_view);
+        pokemon_fap->gen3_trade_view = NULL;
+    }
+    free(pokemon_fap->gen3_trade_sync);
+    pokemon_fap->gen3_trade_sync = NULL;
+
     view_dispatcher_free(pokemon_fap->view_dispatcher);
 
     // Free scenes
     scene_manager_free(pokemon_fap->scene_manager);
 
+    // Gen III bulk data file, opened by the Gen III menu
+    gen3_bulk_furi_close();
+
     // Close records
     furi_record_close(RECORD_GUI);
 
     // Free rest
+    free(pokemon_fap->gen3_editor);
     free(pokemon_fap);
     pokemon_fap = NULL;
 }

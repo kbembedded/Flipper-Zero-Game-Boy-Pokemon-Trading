@@ -40,6 +40,12 @@ void pokemon_scene_main_menu_on_enter(void* context) {
         pokemon_fap);
     submenu_add_item(
         pokemon_fap->submenu,
+        "Gen III  (GBA non-JPN)",
+        PokemonSceneGen3Menu,
+        scene_change_from_main_cb,
+        pokemon_fap);
+    submenu_add_item(
+        pokemon_fap->submenu,
         "Select EXT Pinout",
         PokemonScenePins,
         scene_change_from_main_cb,
