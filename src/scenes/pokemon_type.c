@@ -8,14 +8,13 @@
 #include <src/scenes/include/pokemon_scene.h>
 
 struct type_cb {
-    DataStatSub type;
+    DataStat type;
     PokemonFap* pokemon_fap;
 };
 
-static struct type_cb type_cb[] = {
-    {TYPE_0, NULL},
-    {TYPE_1, NULL},
-    {},
+static struct type_cb type_cb[STAT_TYPE_END-STAT_TYPE] = {
+    {STAT_TYPE_0, NULL},
+    {STAT_TYPE_1, NULL},
 };
 
 /* TODO: In the future I would like to be able to set the types and then
@@ -35,15 +34,18 @@ static void select_type_callback(VariableItem* item) {
         item, namedlist_name_get_pos(context->pokemon_fap->pdata->type_list, pos));
     pokemon_stat_set(
         context->pokemon_fap->pdata,
-        STAT_TYPE,
         context->type,
         namedlist_index_get(context->pokemon_fap->pdata->type_list, pos));
 }
 
+static const char* strings[] = {
+    "Type 1:",
+    "Type 2:",
+};
+
 void pokemon_scene_select_type_on_enter(void* context) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
-    VariableItem* vitype[2];
-    char* strings[2] = {"Type 1:", "Type 2:"};
+    VariableItem* vitype;
     int type;
     int num_types = namedlist_cnt(pokemon_fap->pdata->type_list);
     int pos;
@@ -51,22 +53,21 @@ void pokemon_scene_select_type_on_enter(void* context) {
 
     variable_item_list_reset(pokemon_fap->variable_item_list);
 
-    /* NOTE: 2 is a magic number, but pretty obvious */
-    for(i = 0; i < 2; i++) {
+    for (i = 0; i < (STAT_TYPE_END - STAT_TYPE); i++) {
         type_cb[i].pokemon_fap = pokemon_fap;
-        type = pokemon_stat_get(pokemon_fap->pdata, STAT_TYPE, i);
+        type = pokemon_stat_get(pokemon_fap->pdata, type_cb[i].type);
         pos = namedlist_pos_get(pokemon_fap->pdata->type_list, type);
 
-        vitype[i] = variable_item_list_add(
+        vitype = variable_item_list_add(
             pokemon_fap->variable_item_list,
             strings[i],
             num_types,
             select_type_callback,
             &type_cb[i]);
 
-        variable_item_set_current_value_index(vitype[i], pos);
+        variable_item_set_current_value_index(vitype, pos);
         variable_item_set_current_value_text(
-            vitype[i], namedlist_name_get_pos(pokemon_fap->pdata->type_list, pos));
+            vitype, namedlist_name_get_pos(pokemon_fap->pdata->type_list, pos));
     }
 
     view_dispatcher_switch_to_view(pokemon_fap->view_dispatcher, AppViewVariableItem);

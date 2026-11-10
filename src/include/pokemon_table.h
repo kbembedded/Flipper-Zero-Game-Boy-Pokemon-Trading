@@ -15,8 +15,7 @@ typedef enum {
 typedef struct pokemon_data_table PokemonTable;
 
 int table_pokemon_pos_get(const PokemonTable* table, uint8_t index);
-uint8_t
-    table_stat_base_get(const PokemonTable* table, uint8_t num, DataStat stat, DataStatSub which);
+uint8_t table_stat_base_get(const PokemonTable* table, uint8_t num, DataStat stat);
 const char* table_stat_name_get(const PokemonTable* table, int num);
 const PokemonTable* table_pointer_get();
 

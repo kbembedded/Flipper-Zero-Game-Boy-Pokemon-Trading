@@ -3,6 +3,6 @@
 
 #pragma once
 
-extern const NamedList move_list[];
+const NamedList* move_nl_pointer_get(void);
 
 #endif // MOVE_NL_H

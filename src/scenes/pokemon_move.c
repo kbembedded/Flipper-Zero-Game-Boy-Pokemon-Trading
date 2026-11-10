@@ -12,22 +12,21 @@
 static void select_move_selected_callback(void* context, uint32_t index) {
     PokemonFap* pokemon_fap = (PokemonFap*)context;
     uint32_t move = scene_manager_get_scene_state(pokemon_fap->scene_manager, PokemonSceneMove);
-    uint8_t num = pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE);
+    uint8_t num = pokemon_stat_get(pokemon_fap->pdata, STAT_NUM);
 
     if(index == UINT32_MAX) {
         pokemon_stat_set(
             pokemon_fap->pdata,
-            STAT_MOVE,
-            move,
-            table_stat_base_get(pokemon_fap->pdata->pokemon_table, num, STAT_MOVE, move));
+            STAT_MOVE+move,
+            table_stat_base_get(pokemon_fap->pdata->pokemon_table, num, STAT_BASE_MOVE+move));
     } else {
-        pokemon_stat_set(pokemon_fap->pdata, STAT_MOVE, move, index);
+        pokemon_stat_set(pokemon_fap->pdata, STAT_MOVE+move, index);
     }
     FURI_LOG_D(
         TAG,
         "[move] Set move %s to %d",
         namedlist_name_get_index(
-            pokemon_fap->pdata->move_list, pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE, move)),
+            pokemon_fap->pdata->move_list, pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE+move)),
         (int)move);
 
     /* Move back to move menu */
@@ -68,7 +67,7 @@ void pokemon_scene_select_move_on_enter(void* context) {
             i + 1,
             namedlist_name_get_index(
                 pokemon_fap->pdata->move_list,
-                pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE, i)));
+                pokemon_stat_get(pokemon_fap->pdata, STAT_MOVE+i)));
         submenu_add_item(pokemon_fap->submenu, buf, i, select_move_number_callback, pokemon_fap);
     }
 
@@ -135,9 +134,8 @@ void pokemon_scene_select_move_index_on_enter(void* context) {
             pokemon_fap->pdata->move_list,
             table_stat_base_get(
                 pokemon_fap->pdata->pokemon_table,
-                pokemon_stat_get(pokemon_fap->pdata, STAT_NUM, NONE),
-                STAT_MOVE,
-                move_num)));
+                pokemon_stat_get(pokemon_fap->pdata, STAT_NUM),
+                STAT_BASE_MOVE+move_num)));
     submenu_add_item(
         pokemon_fap->submenu, buf, UINT32_MAX, select_move_selected_callback, pokemon_fap);
 

@@ -218,10 +218,16 @@ struct trade_ctx {
     uint8_t in_data;
     uint8_t out_data;
     uint8_t shift;
-    PokemonData* input_pdata;
+    //PokemonData* input_pdata;
     struct patch_list* patch_list;
     void* gblink_handle;
     PokemonData* pdata;
+    TradeBlock *block;
+    /* XXX: Can this be eliminated? Reuse the original block?
+     * We may need to re-get the tb, but I think that can easily
+     * happen?
+     */
+    TradeBlock *in_tb;
     NotificationApp* notifications;
 };
 
@@ -318,7 +324,7 @@ static void pokemon_plist_recreate_callback(void* context, uint32_t arg) {
      * happen outside of an ISR context, so we slap it here.
      */
     dolphin_deed(DolphinDeedPluginGameWin);
-    plist_create(&(trade->patch_list), trade->pdata);
+    plist_create(&(trade->patch_list), trade->block);
 }
 
 /* Call this at any point to reset the timer on the backlight turning off.
@@ -395,11 +401,12 @@ static void trade_draw_frame(Canvas* canvas, const char* str) {
 static void trade_draw_pkmn_avatar(Canvas* canvas, PokemonData* pdata) {
     furi_assert(canvas);
     furi_assert(pdata);
+    struct fxbm_sprite* sprite = NULL;
 
     /* First, ensure the icon we want is already loaded in to pdata->bitmap */
-    pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM, NONE) + 1);
+    sprite = pokemon_icon_get(pdata, pokemon_stat_get(pdata, STAT_NUM) + 1);
     canvas_draw_xbm(
-        canvas, 0, 0, pdata->bitmap->width, pdata->bitmap->height, pdata->bitmap->data);
+        canvas, 0, 0, sprite->width, sprite->height, sprite->data);
 
     furi_hal_light_set(LightBlue, 0x00);
     furi_hal_light_set(LightGreen, 0x00);
@@ -575,9 +582,9 @@ static uint8_t getMenuResponse(struct trade_ctx* trade) {
 static uint8_t getTradeCentreResponse(struct trade_ctx* trade) {
     furi_assert(trade);
 
-    uint8_t* trade_block_flat = (uint8_t*)trade->pdata->trade_block;
-    uint8_t* input_block_flat = (uint8_t*)trade->input_pdata->trade_block;
-    uint8_t* input_party_flat = (uint8_t*)trade->input_pdata->party;
+    uint8_t* trade_block_flat = (uint8_t*)trade->block->trade_block;
+    uint8_t* input_block_flat = (uint8_t*)trade->in_tb->trade_block;
+    uint8_t* input_party_flat = (uint8_t*)trade->in_tb->party;
     struct trade_model* model = NULL;
     uint8_t in = trade->in_data;
     uint8_t send = in;
@@ -652,7 +659,7 @@ static uint8_t getTradeCentreResponse(struct trade_ctx* trade) {
         send = trade_block_flat[counter];
         counter++;
 
-        if(counter == trade->input_pdata->trade_block_sz) {
+        if(counter == trade->in_tb->trade_block_sz) {
             trade->trade_centre_state = TRADE_PATCH_HEADER;
             counter = 0;
         }
@@ -795,9 +802,14 @@ static uint8_t getTradeCentreResponse(struct trade_ctx* trade) {
             trade->trade_centre_state = TRADE_RESET;
             model->gameboy_status = GAMEBOY_TRADING;
 
-            /* Copy the traded-in Pokemon's main data to our struct */
-            pokemon_stat_memcpy(trade->pdata, trade->input_pdata, in_pkmn_idx);
-            model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
+	    /* XXX: Not sure how this will look long term, but, for now, swap
+	     * the data we just loaded in to info struct back in to our local
+	     * trade_block copy.
+	     */
+	    pokemon_data_trade_block_set(trade->pdata, trade->in_tb, in_pkmn_idx);
+	    pokemon_data_trade_block_get(trade->pdata, trade->block);
+
+            model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM);
 
             /* Schedule a callback outside of ISR context to rebuild the patch
 	     * list with the new Pokemon that we just accepted.
@@ -869,7 +881,7 @@ void trade_enter_callback(void* context) {
         model->gameboy_status = GAMEBOY_READY;
     }
     trade->trade_centre_state = TRADE_RESET;
-    model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM, NONE);
+    model->curr_pokemon = pokemon_stat_get(trade->pdata, STAT_NUM);
     model->ledon = false;
 
     view_commit_model(trade->view, true);
@@ -886,8 +898,10 @@ void trade_enter_callback(void* context) {
     trade->draw_timer = furi_timer_alloc(trade_draw_timer_callback, FuriTimerTypePeriodic, trade);
     furi_timer_start(trade->draw_timer, furi_ms_to_ticks(250));
 
+    trade->block = pokemon_data_trade_block_get(trade->pdata, NULL);
+    trade->in_tb = pokemon_data_trade_block_alloc(trade->pdata);
     /* Create a trade patch list from the current trade block */
-    plist_create(&(trade->patch_list), trade->pdata);
+    plist_create(&(trade->patch_list), trade->block);
 }
 
 void disconnect_pin(const GpioPin* pin) {
@@ -903,6 +917,10 @@ void trade_exit_callback(void* context) {
     furi_hal_light_set(LightGreen, 0x00);
     furi_hal_light_set(LightBlue, 0x00);
     furi_hal_light_set(LightRed, 0x00);
+
+    /* Free our trade_block copy */
+    pokemon_data_trade_block_free(trade->block);
+    pokemon_data_trade_block_free(trade->in_tb);
 
     /* Stop the timer, and deallocate it as the enter callback allocates it on entry */
     furi_timer_free(trade->draw_timer);
@@ -928,7 +946,6 @@ void* trade_alloc(
     memset(trade, '\0', sizeof(struct trade_ctx));
     trade->view = view_alloc();
     trade->pdata = pdata;
-    trade->input_pdata = pokemon_data_alloc(pdata->gen);
     trade->patch_list = NULL;
     trade->notifications = furi_record_open(RECORD_NOTIFICATION);
     trade->gblink_handle = gblink_handle;
@@ -958,7 +975,6 @@ void trade_free(ViewDispatcher* view_dispatcher, uint32_t view_id, void* trade_c
     furi_record_close(RECORD_NOTIFICATION);
 
     view_free(trade->view);
-    pokemon_data_free(trade->input_pdata);
     free(trade);
 }
 

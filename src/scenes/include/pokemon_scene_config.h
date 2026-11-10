@@ -18,6 +18,9 @@ ADD_SCENE(pokemon,	select_name,		UnownForm)
 ADD_SCENE(pokemon,	select_number,		OTID)
 ADD_SCENE(pokemon,	select_name,		OTName)
 ADD_SCENE(pokemon,	trade,			Trade)
+#ifdef DEBUG_DATA
+ADD_SCENE(pokemon,	debug_data,		DebugData)
+#endif
 ADD_SCENE(pokemon,	select_pins,		Pins)
 ADD_SCENE(pokemon,	exit_confirm,		ExitConfirm)
 ADD_SCENE(pokemon,	reset_confirm,		ResetConfirm)

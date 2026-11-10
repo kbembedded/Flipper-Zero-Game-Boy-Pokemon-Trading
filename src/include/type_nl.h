@@ -3,6 +3,6 @@
 
 #pragma once
 
-extern const NamedList type_list[];
+const NamedList* type_nl_pointer_get(void);
 
 #endif // TYPE_NL_H

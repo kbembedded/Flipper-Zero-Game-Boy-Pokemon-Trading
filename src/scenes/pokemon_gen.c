@@ -66,7 +66,7 @@ void pokemon_scene_gen_on_enter(void* context) {
             pdata, pokemon_fap->gblink_handle, pokemon_fap->view_dispatcher, AppViewTrade);
     }
 
-    pkmn_num = pokemon_stat_get(pdata, STAT_NUM, NONE);
+    pkmn_num = pokemon_stat_get(pdata, STAT_NUM);
 
     /* Clear the scene state of the Move scene since that is used to set the
      * highlighted menu item.
@@ -96,7 +96,7 @@ void pokemon_scene_gen_on_enter(void* context) {
         buf,
         sizeof(buf),
         "Level:           %d",
-        pokemon_stat_get(pdata, STAT_LEVEL, NONE));
+        pokemon_stat_get(pdata, STAT_LEVEL));
     submenu_add_item(
         pokemon_fap->submenu, buf, PokemonSceneLevel, scene_change_from_main_cb, pokemon_fap);
 
@@ -107,7 +107,7 @@ void pokemon_scene_gen_on_enter(void* context) {
             "Held Item:   %s",
             namedlist_name_get_index(
                 pdata->item_list,
-                pokemon_stat_get(pdata, STAT_HELD_ITEM, NONE)));
+                pokemon_stat_get(pdata, STAT_HELD_ITEM)));
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonSceneItem, scene_change_from_main_cb, pokemon_fap);
     }
@@ -131,7 +131,7 @@ void pokemon_scene_gen_on_enter(void* context) {
     submenu_add_item(
         pokemon_fap->submenu,
         namedlist_name_get_index(
-            pdata->stat_list, pokemon_stat_get(pdata, STAT_SEL, NONE)),
+            pdata->stat_list, pokemon_stat_get(pdata, STAT_SEL)),
         PokemonSceneStats,
         scene_change_from_main_cb,
         pokemon_fap);
@@ -153,7 +153,7 @@ void pokemon_scene_gen_on_enter(void* context) {
         submenu_add_item(
             pokemon_fap->submenu, buf, PokemonScenePokerus, scene_change_from_main_cb, pokemon_fap);
 
-        if(pokemon_stat_get(pdata, STAT_NUM, NONE) == 0xC8) { // Unown
+        if(pokemon_stat_get(pdata, STAT_NUM) == 0xC8) { // Unown
             snprintf(buf, sizeof(buf), "Unown Form: %c", unown_form_get(pdata));
             submenu_add_item(
                 pokemon_fap->submenu,
@@ -168,7 +168,7 @@ void pokemon_scene_gen_on_enter(void* context) {
         buf,
         sizeof(buf),
         "OT ID#:          %05d",
-        pokemon_stat_get(pdata, STAT_OT_ID, NONE));
+        pokemon_stat_get(pdata, STAT_OT_ID));
     submenu_add_item(
         pokemon_fap->submenu, buf, PokemonSceneOTID, scene_change_from_main_cb, pokemon_fap);
 
@@ -179,6 +179,12 @@ void pokemon_scene_gen_on_enter(void* context) {
 
     submenu_add_item(
         pokemon_fap->submenu, "Trade PKMN", PokemonSceneTrade, scene_change_from_main_cb, pokemon_fap);
+
+#ifdef DEBUG_DATA
+    submenu_add_item(
+        pokemon_fap->submenu, "Flip Data Structs", PokemonSceneDebugData, scene_change_from_main_cb, pokemon_fap);
+#endif
+
 
     if (trade_connected(pokemon_fap->trade)) {
         submenu_add_item(pokemon_fap->submenu,
@@ -230,12 +236,12 @@ bool pokemon_scene_gen_on_event(void* context, SceneManagerEvent event) {
             scene_manager_set_scene_state(pokemon_fap->scene_manager, PokemonSceneLevel, event.event);
             break;
         case PokemonSceneGender:
-            pokemon_num = pokemon_stat_get(pdata, STAT_NUM, NONE);
-            gender_ratio = table_stat_base_get(pdata->pokemon_table, pokemon_num, STAT_BASE_GENDER_RATIO, NONE);
+            pokemon_num = pokemon_stat_get(pdata, STAT_NUM);
+            gender_ratio = table_stat_base_get(pdata->pokemon_table, pokemon_num, STAT_BASE_GENDER_RATIO);
             /* If the pokemon's gender is static (always male, always female,
              * or unknown), then don't transition to the gender selection scene.
              */
-            if(pokemon_gender_is_static(pdata, gender_ratio))
+            if(pokemon_gender_is_static(gender_ratio))
                 goto out;
             break;
         }
